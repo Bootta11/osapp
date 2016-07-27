@@ -32,6 +32,14 @@ namespace OsnovnaSredstva
             lblMessage.Text = "";
 
             inputKolicina.TextChanged += textbox_OnlyNumbersAndDecimal;
+            inputNabavnaVrednost.TextChanged += textbox_OnlyNumbersAndDecimal;
+            inputVek.TextChanged += textbox_OnlyNumbersAndDecimal;
+            inputBrojPoNabavci.TextChanged += textbox_OnlyNumbers;
+
+            inputKolicina.LostFocus += textbox_OnlyNumbersAndDecimal;
+            inputNabavnaVrednost.LostFocus += textbox_OnlyNumbersAndDecimal;
+            inputVek.LostFocus += textbox_OnlyNumbersAndDecimal;
+            inputBrojPoNabavci.LostFocus += textbox_OnlyNumbers;
         }
 
         public bool checkFieldsOK()
@@ -45,7 +53,7 @@ namespace OsnovnaSredstva
             item.inventurniBroj = inputInventurniBroj.Text;
             item.naziv = inputNaziv.Text;
             item.kolicina = double.Parse(inputKolicina.Text);
-            item.datumNabavke = inputInventurniBroj.Text;
+            item.datumNabavke = inputDatumNabavke.Text;
             item.nabavnaVrijednost = double.Parse(inputNabavnaVrednost.Text);
             item.konto = inputKonto.Text;
             item.datumAmortizacije = inputDatumAmortizacije.Text;
@@ -130,12 +138,12 @@ namespace OsnovnaSredstva
                 lblMessage.Text= "Please enter only numbers.";
                 //tb.Text.Remove(tb.Text.Length - 1);
                 tb.Text = tb.Text.Substring(0, tb.Text.Length - 1);
-                tb.SelectionStart = tb.Text.Length - 1;
+                tb.SelectionStart = tb.Text.Length;
                 tb.BackColor = Color.FromArgb(255,204,204);
             }
             else
             {
-                tb.BackColor = TextBox.DefaultBackColor;
+                tb.BackColor = Color.White;
             }
         }
 
@@ -152,8 +160,13 @@ namespace OsnovnaSredstva
             }
             else
             {
-                tb.BackColor = TextBox.DefaultBackColor;
+                tb.BackColor = Color.White;
             }
+        }
+
+        private void btnPregled_Click(object sender, EventArgs e)
+        {
+            DBManager.GetAll();
         }
     }
 }
