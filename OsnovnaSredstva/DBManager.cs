@@ -8,14 +8,14 @@ using System.Globalization;
 
 namespace OsnovnaSredstva
 {
-    
+
     class DBManager
     {
         private static string dbName = "osapdb.db3";
         private static SQLiteConnection cnn = null;
         public static void init()
         {
-            cnn = new SQLiteConnection("Data Source="+dbName);
+            cnn = new SQLiteConnection("Data Source=" + dbName);
             //cnn.SetPassword("OOs.app33");
             cnn.Open();
 
@@ -31,16 +31,16 @@ namespace OsnovnaSredstva
         {
             CultureInfo provider = CultureInfo.InvariantCulture;
             string sql = "insert into osnovna_sredstva (inventurni_broj, naziv , kolicina, datum_nabavke, nabavna_vrijednost, konto, datum_amortizacije, ispravka_vrijednosti, vek, datum_otpisa, sadasnja_vrednost, jedinica_mjere, dobavljac, racun_dok_dobavljaca, racunopolagac, lokacija, smjestaj, metoda_amortizacije, poreske_grupe, broj_po_nabavci, amortizaciona_grupa, stopa_amortizacije, active)" +
-                "  values ('"+item.inventurniBroj+ "', '" + item.naziv + "' , '" + item.kolicina + "', @datum_nabavke, '" + item.nabavnaVrijednost + "', '" + item.konto + "', @datum_amortizacije, '" + item.ispravka_vrijednosti + "', '" + item.vek + "', @datum_otpisa, '" + item.sadasnjaVrijednost + "', '" + item.jednicaMjere + "', '" + item.dobavljac + "', '" + item.racunDobavljaca + "', '" + item.racunDobavljaca + "', '" + item.lokacija + "', '" + item.smjestaj + "', '" + item.metodaAmortizacije + "', '" + item.poreskeGrupe + "', '"+ item.brojPoNabavci +"', '" + item.amortizacionaGrupa + "', '" + item.stopaAmortizacije + "', '" + item.active + "')";
+                "  values ('" + item.inventurniBroj + "', '" + item.naziv + "' , '" + item.kolicina + "', @datum_nabavke, '" + item.nabavnaVrijednost + "', '" + item.konto + "', @datum_amortizacije, '" + item.ispravka_vrijednosti + "', '" + item.vek + "', @datum_otpisa, '" + item.sadasnjaVrijednost + "', '" + item.jednicaMjere + "', '" + item.dobavljac + "', '" + item.racunDobavljaca + "', '" + item.racunDobavljaca + "', '" + item.lokacija + "', '" + item.smjestaj + "', '" + item.metodaAmortizacije + "', '" + item.poreskeGrupe + "', '" + item.brojPoNabavci + "', '" + item.amortizacionaGrupa + "', '" + item.stopaAmortizacije + "', '" + item.active + "')";
 
             SQLiteCommand command = new SQLiteCommand(sql, cnn);
-            command.Parameters.AddWithValue("@datum_nabavke", DateTime.ParseExact(item.datumNabavke,"dd.MM.yyyy.",provider) );
+            command.Parameters.AddWithValue("@datum_nabavke", DateTime.ParseExact(item.datumNabavke, "dd.MM.yyyy.", provider));
             command.Parameters.AddWithValue("@datum_amortizacije", DateTime.ParseExact(item.datumAmortizacije, "dd.MM.yyyy.", provider));
             command.Parameters.AddWithValue("@datum_otpisa", DateTime.ParseExact(item.datumOtpisa, "dd.MM.yyyy.", provider));
             command.ExecuteNonQuery();
         }
 
-        public static List<OSItem>  GetAll()
+        public static List<OSItem> GetAll()
         {
             List<OSItem> ret = new List<OSItem>();
             string sql = "SELECT * FROM osnovna_sredstva";
@@ -53,15 +53,15 @@ namespace OsnovnaSredstva
             {
                 OSItem item = new OSItem();
                 //numRows = Convert.ToInt32(reader["cnt"]);
-                
+
                 item.inventurniBroj = reader["inventurni_broj"].ToString();
                 item.naziv = reader["naziv"].ToString();
                 item.kolicina = double.Parse(reader["kolicina"].ToString());
                 //item.datumNabavke = reader["datum_nabavke"].ToString();
                 item.nabavnaVrijednost = double.Parse(reader["nabavna_vrijednost"].ToString());
                 item.konto = reader["konto"].ToString();
-                Console.WriteLine("D: "+reader.GetDateTime(4).ToString("dd.MM.yyyy."));
-                item.datumNabavke = reader.GetString(4).ToString(); 
+                Console.WriteLine("D: " + reader.GetDateTime(4).ToString("dd.MM.yyyy."));
+                item.datumNabavke = reader.GetString(4).ToString();
                 item.datumAmortizacije = reader.GetString(7).ToString();
                 item.ispravka_vrijednosti = double.Parse(reader["ispravka_vrijednosti"].ToString());
                 item.vek = double.Parse(reader["vek"].ToString());
@@ -83,6 +83,21 @@ namespace OsnovnaSredstva
                 ret.Add(item);
             }
 
+            return ret;
+        }
+
+        public static List<OSItem> GetAllSaIspravkaVrijednostiISadasnjaVrijednost(DateTime pickedDate)
+        {
+            List<OSItem> ret = new List<OSItem>();
+            List<OSItem> allItemsFromDB = GetAll();
+            foreach (OSItem item in allItemsFromDB)
+            {
+                item.ispravka_vrijednosti = Math.Round(OSUtil.ispravkaVrijednosti(item.nabavnaVrijednost, pickedDate, DateTime.ParseExact(item.datumAmortizacije, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture), item.stopaAmortizacije), 2);
+                item.sadasnjaVrijednost = Math.Round(item.nabavnaVrijednost - item.ispravka_vrijednosti, 2); 
+                Console.WriteLine("Nabavna: " + item.nabavnaVrijednost+" ispracka: "+item.ispravka_vrijednosti+ " sadasnja: "+item.sadasnjaVrijednost);
+                ret.Add(item);
+            }
+            
             return ret;
         }
     }
