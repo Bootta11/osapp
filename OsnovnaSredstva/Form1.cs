@@ -8,6 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Data.SQLite;
+using System.Globalization;
+using System.Threading;
+using System.Configuration;
 
 namespace OsnovnaSredstva
 {
@@ -20,21 +23,20 @@ namespace OsnovnaSredstva
             // Opens an unencrypted database
 
             DBManager.init();
+            AppSettingsReader settings = new AppSettingsReader();
+            string strculture = (string)settings.GetValue("DefaultCulture", typeof(string));
+            Console.WriteLine(strculture);
+            CultureInfo culture = new CultureInfo(strculture);
+            Thread.CurrentThread.CurrentCulture = culture;
+            Thread.CurrentThread.CurrentUICulture = culture;
+            lblMessage.Text = "";
+
+            inputKolicina.TextChanged += textbox_OnlyNumbersAndDecimal;
         }
 
-        private void tableLayoutPanel14_Paint(object sender, PaintEventArgs e)
+        public bool checkFieldsOK()
         {
-
-        }
-
-        private void tableLayoutPanel11_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
+            return true;
         }
 
         private void btnSnimiti_Click(object sender, EventArgs e)
@@ -73,25 +75,85 @@ namespace OsnovnaSredstva
 
         private void inputNabavnaVrednost_Leave(object sender, EventArgs e)
         {
-            DateTime dtDatumOtpisa =DateTime.ParseExact(inputDatumOtpisa.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture);
-            DateTime dtamortizacije = DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture);
-            DateTime dtNow = DateTime.Now;
-            Console.WriteLine(dtDatumOtpisa + " - " + dtamortizacije);
-            double daysDiff = Math.Floor( (dtNow - dtamortizacije).TotalDays);
-            double nabavnaVrijednost = double.Parse(inputNabavnaVrednost.Text);
-            double stopaAmortizacije = double.Parse(inputStopaAmortizacije.Text);
-            double ispravkaVrijednosti =  ((nabavnaVrijednost*stopaAmortizacije*daysDiff)/(365*100));
-            double sadasnjaVrijednost = nabavnaVrijednost - ispravkaVrijednosti;
-            inputIspravkaVrijednosti.Text = ispravkaVrijednosti.ToString("#.##") + "";
-            inputSadasnjaVrednost.Text = sadasnjaVrijednost.ToString("#.##") + "";
-            Console.WriteLine("Opa");
+            CalculateIspravkaVrijednostiSadasnjaVrijednost();
         }
 
-        
+
 
         private void inputDatumNabavke_ValueChanged_1(object sender, EventArgs e)
         {
             Console.WriteLine(inputDatumNabavke.Text);
+            inputDatumAmortizacije.MinDate = inputDatumNabavke.Value;
+            inputDatumOtpisa.MinDate = inputDatumNabavke.Value;
+            CalculateIspravkaVrijednostiSadasnjaVrijednost();
+        }
+
+        private void inputDatumAmortizacije_ValueChanged(object sender, EventArgs e)
+        {
+            CalculateIspravkaVrijednostiSadasnjaVrijednost();
+        }
+
+        private void inputDatumOtpisa_ValueChanged(object sender, EventArgs e)
+        {
+            inputDatumAmortizacije.MaxDate = inputDatumOtpisa.Value;
+            inputDatumNabavke.MaxDate = inputDatumOtpisa.Value;
+            CalculateIspravkaVrijednostiSadasnjaVrijednost();
+        }
+
+        public void CalculateIspravkaVrijednostiSadasnjaVrijednost()
+        {
+            DateTime dtDatumOtpisa = DateTime.ParseExact(inputDatumOtpisa.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture);
+            DateTime dtamortizacije = DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture);
+            DateTime dtNow = DateTime.Now;
+            Console.WriteLine(dtDatumOtpisa + " - " + dtamortizacije);
+            double daysDiff = Math.Floor((dtNow - dtamortizacije).TotalDays);
+            double nabavnaVrijednost = double.Parse(inputNabavnaVrednost.Text);
+            double stopaAmortizacije = double.Parse(inputStopaAmortizacije.Text);
+            double ispravkaVrijednosti = ((nabavnaVrijednost * stopaAmortizacije * daysDiff) / (365 * 100));
+            double sadasnjaVrijednost = nabavnaVrijednost - ispravkaVrijednosti;
+            inputIspravkaVrijednosti.Text = ispravkaVrijednosti.ToString("0.00") + "";
+            inputSadasnjaVrednost.Text = sadasnjaVrijednost.ToString("0.00") + "";
+            Console.WriteLine("Opa");
+        }
+
+        private void inputStopaAmortizacije_Leave(object sender, EventArgs e)
+        {
+
+            CalculateIspravkaVrijednostiSadasnjaVrijednost();
+        }
+
+        private void textbox_OnlyNumbers(object sender, EventArgs e)
+        {
+            TextBox tb = (TextBox)sender;
+            if (System.Text.RegularExpressions.Regex.IsMatch(tb.Text, "[^0-9]"))
+            {
+                lblMessage.Text= "Please enter only numbers.";
+                //tb.Text.Remove(tb.Text.Length - 1);
+                tb.Text = tb.Text.Substring(0, tb.Text.Length - 1);
+                tb.SelectionStart = tb.Text.Length - 1;
+                tb.BackColor = Color.FromArgb(255,204,204);
+            }
+            else
+            {
+                tb.BackColor = TextBox.DefaultBackColor;
+            }
+        }
+
+        private void textbox_OnlyNumbersAndDecimal(object sender, EventArgs e)
+        {
+            Console.WriteLine("Decimal separator: "+ CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
+            TextBox tb = (TextBox)sender;
+            if (System.Text.RegularExpressions.Regex.IsMatch(tb.Text, "[^0-9"+ CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator + "]"))
+            {
+                lblMessage.Text = "Please enter only numbers and decimal.";
+                tb.Text = tb.Text.Substring(0, tb.Text.Length - 1);
+                tb.SelectionStart = tb.Text.Length;
+                tb.BackColor = Color.FromArgb(255, 204, 204);
+            }
+            else
+            {
+                tb.BackColor = TextBox.DefaultBackColor;
+            }
         }
     }
 }
