@@ -86,5 +86,12 @@ namespace OsnovnaSredstva
             inputSadasnjaVrednost.Text = sadasnjaVrijednost.ToString("#.##") + "";
             Console.WriteLine("Opa");
         }
+
+        
+
+        private void inputDatumNabavke_ValueChanged_1(object sender, EventArgs e)
+        {
+            Console.WriteLine(inputDatumNabavke.Text);
+        }
     }
 }
