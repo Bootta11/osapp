@@ -13,6 +13,8 @@ using System.Threading;
 using System.Configuration;
 using System.Drawing.Printing;
 using System.Reflection;
+using System.Web;
+using System.Net;
 
 namespace OsnovnaSredstva
 {
@@ -21,7 +23,7 @@ namespace OsnovnaSredstva
         public Form1()
         {
             InitializeComponent();
-
+            OSUtil.init();
             // Opens an unencrypted database
 
             DBManager.init();
@@ -63,10 +65,10 @@ namespace OsnovnaSredstva
             item.vek = double.Parse(inputVek.Text);
             item.datumOtpisa = inputDatumOtpisa.Text;
             //item.sadasnjaVrijednost = double.Parse(inputSadasnjaVrednost.Text);
-            item.jednicaMjere = inputjednicaMjere.Text;
+            item.jedinicaMjere = inputjednicaMjere.Text;
             item.dobavljac = inputDobavljac.Text;
             item.racunDobavljaca = inputRacunDokDobavljaca.Text;
-            item.racunoPolagac = inputRacunopolagac.Text;
+            item.racunopolagac = inputRacunopolagac.Text;
             item.lokacija = inputLokacija.Text;
             item.smjestaj = inputSmjestaj.Text;
             item.metodaAmortizacije = inputMetodaAmortizacije.Text;
@@ -80,6 +82,10 @@ namespace OsnovnaSredstva
             if (!msg.Equals(""))
             {
                 showErrorMessage("Error: Nije moguce unijeti novo OS");
+            }
+            else
+            {
+                hideMessage();
             }
 
         }
@@ -211,55 +217,6 @@ namespace OsnovnaSredstva
             }
         }
 
-        private void btnBrisanje_Click(object sender, EventArgs e)
-        {
-            System.IO.StreamWriter file =
-            new System.IO.StreamWriter(@"items.csv", false);
-
-
-            //Console.WriteLine(OSUtil.ispravkaVrijednosti(double.Parse(inputNabavnaVrednost.Text), DateTime.ParseExact("2017-05-30", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture), double.Parse(inputStopaAmortizacije.Text)));
-            List<OSItem> itemsForList = DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(DateTime.ParseExact("27.07.2016.", "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture)).items;
-
-
-
-            Type myType = typeof(OSItem);
-            IList<PropertyInfo> props = new List<PropertyInfo>(myType.GetProperties());
-            Console.WriteLine(props.Count);
-            //dgvPregled.ColumnCount = props.Count;
-            for (int i = 0; i < props.Count; i++)
-            {
-                //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
-                //object propValue = prop.GetValue(myObject, null);
-                //dgvPregled.Columns[i].Name = props.ElementAt(i).Name;
-                file.Write(props.ElementAt(i).Name + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                // Do something with propValue
-            }
-
-            foreach (OSItem item in itemsForList)
-            {
-                List<string> row = new List<string>();
-                for (int i = 0; i < props.Count; i++)
-                {
-                    if (props.ElementAt(i).Name.StartsWith("datum"))
-                    {
-                        //row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy."));
-                        file.Write(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy.") + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                    }
-                    else
-                    {
-                        //row.Add(props.ElementAt(i).GetValue(item, null).ToString());
-                        file.Write(props.ElementAt(i).GetValue(item, null).ToString() + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                    }
-                    //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
-                    //object propValue = prop.GetValue(myObject, null);
-
-                    // Do something with propValue
-                }
-                //dgvPregled.Rows.Add(row.ToArray());
-            }
-            file.Close();
-        }
-
         private void dataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             DataGridView dgv = (DataGridView)sender;
@@ -270,12 +227,93 @@ namespace OsnovnaSredstva
         {
             lblMessage.ForeColor = Color.Red;
             lblMessage.Text = msg;
+            lblMessage.BackColor = Color.White;
+            lblMessage.BorderStyle = BorderStyle.FixedSingle;
         }
 
         public void showMessage(string msg)
         {
             lblMessage.ForeColor = Color.Green;
             lblMessage.Text = msg;
+            lblMessage.BackColor = Color.White;
+            lblMessage.BorderStyle = BorderStyle.FixedSingle;
         }
+
+        public void hideMessage()
+        {
+            
+            lblMessage.Text = "";
+            lblMessage.BackColor = Color.Transparent;
+            lblMessage.BorderStyle = BorderStyle.None;
+        }
+
+        private void btnCSV_Click(object sender, EventArgs e)
+        {
+            //System.IO.StreamWriter file = new System.IO.StreamWriter(@"items.csv", false);
+            System.IO.StreamWriter file;
+
+            //System.Web.HttpContext.Current.Response.Write("Some Text");
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Filter = "Comma separated values|*.csv";
+            saveFileDialog1.Title = "Save an CSV File";
+            saveFileDialog1.DefaultExt = "csv";
+            DialogResult? result = saveFileDialog1.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                System.IO.Stream dlgstream;
+                if ((dlgstream = saveFileDialog1.OpenFile()) != null)
+                {
+                    
+                    file = new System.IO.StreamWriter(dlgstream);
+                    
+                    //System.IO.StreamWriter file = new System.IO.StreamWriter(Response.OutputStream, Encoding.UTF8);
+
+                    //Console.WriteLine(OSUtil.ispravkaVrijednosti(double.Parse(inputNabavnaVrednost.Text), DateTime.ParseExact("2017-05-30", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture), double.Parse(inputStopaAmortizacije.Text)));
+                    List<OSItem> itemsForList = DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(DateTime.ParseExact("27.07.2016.", "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture)).items;
+
+
+
+                    Type myType = typeof(OSItem);
+                    IList<PropertyInfo> props = new List<PropertyInfo>(myType.GetProperties());
+                    Console.WriteLine(props.Count);
+                    //dgvPregled.ColumnCount = props.Count;
+                    for (int i = 0; i < props.Count; i++)
+                    {
+                        //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
+                        //object propValue = prop.GetValue(myObject, null);
+                        //dgvPregled.Columns[i].Name = props.ElementAt(i).Name;
+                        //file.Write( props.ElementAt(i).Name + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                        file.Write(OSUtil.columnNames[props.ElementAt(i).Name] + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                        // Do something with propValue
+                    }
+
+                    foreach (OSItem item in itemsForList)
+                    {
+                        List<string> row = new List<string>();
+                        for (int i = 0; i < props.Count; i++)
+                        {
+                            if (props.ElementAt(i).Name.StartsWith("datum"))
+                            {
+                                //row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy."));
+                                file.Write(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy.") + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                            }
+                            else
+                            {
+                                //row.Add(props.ElementAt(i).GetValue(item, null).ToString());
+                                file.Write(props.ElementAt(i).GetValue(item, null).ToString() + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                            }
+                            //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
+                            //object propValue = prop.GetValue(myObject, null);
+
+                            // Do something with propValue
+                        }
+                        //dgvPregled.Rows.Add(row.ToArray());
+                    }
+                    file.Close();
+                }
+            }
+        }
+
+        
     }
 }

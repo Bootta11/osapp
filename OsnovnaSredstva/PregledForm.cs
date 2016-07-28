@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Reflection;
-using System.Drawing;
 using System.Drawing.Printing;
 
 
@@ -16,11 +15,15 @@ namespace OsnovnaSredstva
 {
     public partial class PregledForm : Form
     {
+        static int itemPrintNum=0;
         List<OSItem> changedItems = new List<OSItem>();
         static ListWithFieldMaxLengths itemsForList = new ListWithFieldMaxLengths();
         public PregledForm()
         {
             InitializeComponent();
+
+
+
             itemsForList = DBManager.GetAll();
             dgvPregled.Font = new Font("Courier New", 8);
             Type myType = typeof(OSItem);
@@ -31,7 +34,7 @@ namespace OsnovnaSredstva
             {
                 //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
                 //object propValue = prop.GetValue(myObject, null);
-                dgvPregled.Columns[i].Name = props.ElementAt(i).Name;
+                dgvPregled.Columns[i].Name = OSUtil.columnNames[props.ElementAt(i).Name];
                 // Do something with propValue
             }
 
@@ -51,11 +54,14 @@ namespace OsnovnaSredstva
                     }
                     //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
                     //object propValue = prop.GetValue(myObject, null);
-                    
+
                     // Do something with propValue
                 }
                 dgvPregled.Rows.Add(row.ToArray());
             }
+
+
+
         }
 
         //define rw as globly variable in form
@@ -99,98 +105,110 @@ namespace OsnovnaSredstva
             int Offset = 40;
             //graphics.DrawString("Welcome to Bakery Shop", new Font("Courier New", 10), new SolidBrush(Color.Black), startX, startY + Offset);
             Offset = Offset + 20;
-            string underLine = "------------------------------------------";
+            //string underLine = "------------------------------------------";
             //graphics.DrawString(underLine, new Font("Courier New", 10), new SolidBrush(Color.Black), startX, startY + Offset);
             Offset = Offset + 20;
-            
+
             int offsetY = startY;
             int offsetX = startX;
-            string[] columns = { "id", "inventurniBroj", "naziv", "kolicina", "datumNabavke", "datumAmortizacije", "nabavnaVrijednost", "ispravkaVrijednosti", "sadasnjaVrijednost", "konto" };
-            Dictionary<string, string> columnNames = new Dictionary<string, string>();
-            columnNames.Add("id", "ID");
-            columnNames.Add("inventurniBroj", "Inventurni Broj");
-            columnNames.Add("naziv", "Naziv");
-            columnNames.Add("kolicina", "Kolicina");
-            columnNames.Add("datumNabavke", "Datum Nabavke");
-            columnNames.Add("datumAmortizacije", "Datum Amortizacije");
-            columnNames.Add("nabavnaVrijednost", "Nabavna Vrijednost");
-            columnNames.Add("ispravkaVrijednosti", "Ispravka Vrijednosti");
-            columnNames.Add("sadasnjaVrijednost", "Sadasnja Vrijednost");
-            columnNames.Add("konto", "Konto");
-            
+            string[] columns = { "#", "inventurniBroj", "naziv", "kolicina", "datumNabavke", "datumAmortizacije", "nabavnaVrijednost", "ispravkaVrijednosti", "sadasnjaVrijednost", "konto" };
+
+
             foreach (string cname in columns)
             {
                 SizeF maxStringSize = new SizeF();
-                Console.WriteLine("maxstr: " + itemsForList.fieldMaxLength[cname] + " cname: " + cname);
-                maxStringSize = e.Graphics.MeasureString(itemsForList.fieldMaxLength[cname], dgvPregled.Font);
-                
+                if (cname.Equals("#")) { maxStringSize = e.Graphics.MeasureString((itemsForList.items.Count).ToString().Length>OSUtil.columnNames[cname].Length? (itemsForList.items.Count).ToString(): OSUtil.columnNames[cname], dgvPregled.Font); maxStringSize.Width += 2; }
+                else maxStringSize = e.Graphics.MeasureString(itemsForList.fieldMaxLength[cname], dgvPregled.Font);
+
                 graphics.DrawRectangle(Pens.Black, offsetX, offsetY, maxStringSize.Width, dgvPregled.Rows[0].Height);
-                graphics.FillRectangle(Brushes.LightGray, new Rectangle(offsetX+1 , offsetY + 1, (int)maxStringSize.Width -1 , dgvPregled.Rows[0].Height));
+                graphics.FillRectangle(Brushes.LightGray, new Rectangle(offsetX + 1, offsetY + 1, (int)maxStringSize.Width - 1, dgvPregled.Rows[0].Height));
                 RectangleF rectf = new RectangleF((float)offsetX, ((float)(offsetY)), (float)maxStringSize.Width, (float)dgvPregled.Rows[0].Height);
                 StringFormat stringDrawFormat = new StringFormat();
                 stringDrawFormat.Alignment = StringAlignment.Center;
                 stringDrawFormat.LineAlignment = StringAlignment.Center;
-                
-                graphics.DrawString(columnNames[cname], dgvPregled.Font, Brushes.Black, rectf, stringDrawFormat);
-                
+
+                graphics.DrawString(OSUtil.columnNames[cname], dgvPregled.Font, Brushes.Black, rectf, stringDrawFormat);
+
                 offsetX += (int)maxStringSize.Width;
             }
             offsetY += dgvPregled.Rows[0].Height;
             int a = itemsForList.items.Count;
             int c = dgvPregled.Columns.Count;
             Type ositemType = typeof(OSItem);
-            
-            for (int i = 0; i < a; i++)
+            int rb=1;
+            for (; itemPrintNum < a; itemPrintNum++)
             {
                 offsetX = startX;
-                
+                if ((offsetY) > (e.PageBounds.Height - startY-10))
+                {
+
+                    offsetY = startY;
+                    e.HasMorePages = true;
+                    break;
+                }
+                else
+                {
+                    if (itemPrintNum >= a)
+                    {
+                        itemPrintNum = 0;
+                    }
+                }
                 foreach (string cname in columns)
                 {
                     PropertyInfo prop = ositemType.GetProperty(cname);
                     SizeF maxStringSize = new SizeF();
-                    Console.WriteLine("maxstr: "+itemsForList.fieldMaxLength[cname]+" cname: "+cname);
-                    maxStringSize = e.Graphics.MeasureString(itemsForList.fieldMaxLength[cname], dgvPregled.Font);
+
+                    if (cname.Equals("#")) { maxStringSize = e.Graphics.MeasureString((itemsForList.items.Count).ToString().Length > OSUtil.columnNames[cname].Length ? (itemsForList.items.Count).ToString() : OSUtil.columnNames[cname], dgvPregled.Font); maxStringSize.Width += 2; }
+                    else maxStringSize = e.Graphics.MeasureString(itemsForList.fieldMaxLength[cname], dgvPregled.Font);
+                    
                     //graphics.DrawString(Convert.ToString(dataGridView1.Rows[i].Cells[0].Value), new Font("Courier New", 10), new SolidBrush(Color.Black), startX, startY + Offset);
-                    graphics.DrawRectangle(Pens.Black, offsetX, offsetY, maxStringSize.Width, dgvPregled.Rows[i].Height);
+                    graphics.DrawRectangle(Pens.Black, offsetX, offsetY, maxStringSize.Width, dgvPregled.Rows[itemPrintNum].Height);
                     //graphics.FillRectangle(Brushes.LightGray, new Rectangle(offsetX + 1, offsetY + 1,(int)maxStringSize.Width - 1, dgvPregled.Rows[i].Height));
-                    RectangleF rectf = new RectangleF((float)offsetX, ((float)(offsetY)), (float)maxStringSize.Width, (float)dgvPregled.Rows[i].Height);
+                    RectangleF rectf = new RectangleF((float)offsetX, ((float)(offsetY)), (float)maxStringSize.Width, (float)dgvPregled.Rows[itemPrintNum].Height);
                     StringFormat stringDrawFormat = new StringFormat();
                     stringDrawFormat.Alignment = StringAlignment.Center;
                     stringDrawFormat.LineAlignment = StringAlignment.Center;
                     //Convert.ToString(dataGridView1.Rows[i].Cells[k].Value);
-                    graphics.DrawString(prop.GetValue(itemsForList.items[i])+"", dgvPregled.Font, Brushes.Black, rectf, stringDrawFormat);
-                    
+                    if (cname.Equals("#"))
+                    {
+                        graphics.DrawString((itemPrintNum+1) + "", dgvPregled.Font, Brushes.Black, rectf, stringDrawFormat);
+                    }
+                    else
+                    {
+                        graphics.DrawString(prop.GetValue(itemsForList.items[itemPrintNum]) + "", dgvPregled.Font, Brushes.Black, rectf, stringDrawFormat);
+                    }
                     //graphics.DrawString()
 
                     //graphics.DrawString("\t" + Convert.ToString(dataGridView1.Rows[i].Cells[1].Value), new Font("Courier New", 10), new SolidBrush(Color.Black), startX, startY + Offset);
                     //offsetX += dgvPregled.Columns[cname].GetPreferredWidth(DataGridViewAutoSizeColumnMode.AllCells,true);
                     offsetX += (int)maxStringSize.Width;
                 }
-                offsetY += dgvPregled.Rows[i].Height;
+                offsetY += dgvPregled.Rows[itemPrintNum].Height;
+                
             }
         }
 
         private void btnPrint_Click(object sender, EventArgs e)
         {
             zpt();
-            
+
         }
 
         private void dgvPregled_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             DataGridView dgv = (DataGridView)sender;
-            
 
-            
-            OSItem item =DBManager.GetItem(dgv.Rows[e.RowIndex].Cells["id"].Value.ToString());
-            Console.WriteLine("Item name: "+item.naziv);
+
+
+            OSItem item = DBManager.GetItem(dgv.Rows[e.RowIndex].Cells["id"].Value.ToString());
+            Console.WriteLine("Item name: " + item.naziv);
             item.inventurniBroj = dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
 
             PropertyInfo prop = item.GetType().GetProperty(dgv.Columns[e.ColumnIndex].Name, BindingFlags.Public | BindingFlags.Instance);
-            
+
             if (null != prop && prop.CanWrite)
             {
-                prop.SetValue(item, Convert.ChangeType(dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value, prop.PropertyType) , null);
+                prop.SetValue(item, Convert.ChangeType(dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value, prop.PropertyType), null);
             }
             DBManager.UpdateItem(item);
         }

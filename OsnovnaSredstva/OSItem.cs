@@ -20,10 +20,10 @@ namespace OsnovnaSredstva
         public double vek { set; get; }
         public string datumOtpisa { set; get; }
         public double sadasnjaVrijednost { set; get; }
-        public string jednicaMjere { set; get; }
+        public string jedinicaMjere { set; get; }
         public string dobavljac { set; get; }
         public string racunDobavljaca { set; get; }
-        public string racunoPolagac { set; get; }
+        public string racunopolagac { set; get; }
         public string lokacija { set; get; }
         public string smjestaj { set; get; }
         public string metodaAmortizacije { set; get; }
