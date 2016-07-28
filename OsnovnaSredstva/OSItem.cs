@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace OsnovnaSredstva
 {
-    class OSItem
+    public class OSItem
     {
+        public string id { set; get; }
         public string inventurniBroj { set; get; }
         public string naziv { set; get; }
         public double kolicina { set; get; }
@@ -15,7 +16,7 @@ namespace OsnovnaSredstva
         public double nabavnaVrijednost { set; get; }
         public string konto { set; get; }
         public string datumAmortizacije { set; get; }
-        public double ispravka_vrijednosti { set; get; }
+        public double ispravkaVrijednosti { set; get; }
         public double vek { set; get; }
         public string datumOtpisa { set; get; }
         public double sadasnjaVrijednost { set; get; }
@@ -32,5 +33,12 @@ namespace OsnovnaSredstva
         public double stopaAmortizacije { set; get; }
         public string active { set; get; }
         
+    }
+
+    public class ListWithFieldMaxLengths
+    {
+        public List<OSItem> items=new List<OSItem>();
+        public Dictionary<string, string> fieldMaxLength = new Dictionary<string, string>();
+
     }
 }

@@ -29,8 +29,10 @@
         private void InitializeComponent()
         {
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.btnPrint = new System.Windows.Forms.Button();
             this.dgvPregled = new System.Windows.Forms.DataGridView();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvPregled)).BeginInit();
@@ -45,6 +47,7 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.btnPrint);
             this.splitContainer1.Panel1.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
             // 
             // splitContainer1.Panel2
@@ -56,6 +59,16 @@
             this.splitContainer1.SplitterDistance = 77;
             this.splitContainer1.TabIndex = 0;
             // 
+            // btnPrint
+            // 
+            this.btnPrint.Location = new System.Drawing.Point(12, 12);
+            this.btnPrint.Name = "btnPrint";
+            this.btnPrint.Size = new System.Drawing.Size(75, 23);
+            this.btnPrint.TabIndex = 0;
+            this.btnPrint.Text = "Print";
+            this.btnPrint.UseVisualStyleBackColor = true;
+            this.btnPrint.Click += new System.EventHandler(this.btnPrint_Click);
+            // 
             // dgvPregled
             // 
             this.dgvPregled.AllowUserToOrderColumns = true;
@@ -65,9 +78,10 @@
             this.dgvPregled.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgvPregled.Location = new System.Drawing.Point(0, 0);
             this.dgvPregled.Name = "dgvPregled";
-            this.dgvPregled.ReadOnly = true;
             this.dgvPregled.Size = new System.Drawing.Size(894, 350);
             this.dgvPregled.TabIndex = 1;
+            this.dgvPregled.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPregled_CellValueChanged);
+            this.dgvPregled.UserDeletingRow += new System.Windows.Forms.DataGridViewRowCancelEventHandler(this.dgvPregled_UserDeletingRow);
             // 
             // PregledForm
             // 
@@ -77,6 +91,7 @@
             this.Controls.Add(this.splitContainer1);
             this.Name = "PregledForm";
             this.Text = "PregledForm";
+            this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
@@ -89,5 +104,6 @@
 
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.DataGridView dgvPregled;
+        private System.Windows.Forms.Button btnPrint;
     }
 }

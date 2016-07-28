@@ -44,5 +44,10 @@ namespace OsnovnaSredstva
             
             return ret;
         }
+
+        public static T ConvertToTypeInParameter<T>(object input)
+        {
+            return (T)Convert.ChangeType(input, typeof(T));
+        }
     }
 }

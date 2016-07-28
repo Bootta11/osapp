@@ -59,10 +59,10 @@ namespace OsnovnaSredstva
             item.nabavnaVrijednost = double.Parse(inputNabavnaVrednost.Text);
             item.konto = inputKonto.Text;
             item.datumAmortizacije = inputDatumAmortizacije.Text;
-            item.ispravka_vrijednosti = double.Parse(inputIspravkaVrijednosti.Text);
+            //item.ispravkaVrijednosti = double.Parse(inputIspravkaVrijednosti.Text);
             item.vek = double.Parse(inputVek.Text);
             item.datumOtpisa = inputDatumOtpisa.Text;
-            item.sadasnjaVrijednost = double.Parse(inputSadasnjaVrednost.Text);
+            //item.sadasnjaVrijednost = double.Parse(inputSadasnjaVrednost.Text);
             item.jednicaMjere = inputjednicaMjere.Text;
             item.dobavljac = inputDobavljac.Text;
             item.racunDobavljaca = inputRacunDokDobavljaca.Text;
@@ -75,7 +75,13 @@ namespace OsnovnaSredstva
             item.amortizacionaGrupa = inputAmortizacijaGrupe.Text;
             item.stopaAmortizacije = double.Parse(inputStopaAmortizacije.Text);
             item.active = "active";
-            DBManager.insertOS(item);
+
+            string msg = DBManager.insertOS(item);
+            if (!msg.Equals(""))
+            {
+                showErrorMessage("Error: Nije moguce unijeti novo OS");
+            }
+
         }
 
         private void inputNaziv_TextChanged(object sender, EventArgs e)
@@ -112,21 +118,27 @@ namespace OsnovnaSredstva
 
         public void CalculateIspravkaVrijednostiSadasnjaVrijednost()
         {
-            
-            DateTime dtDatumOtpisa = DateTime.ParseExact(inputDatumOtpisa.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture);
-            DateTime dtamortizacije = DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture);
-            DateTime dtNow = DateTime.Now;
-            Console.WriteLine(dtDatumOtpisa + " - " + dtamortizacije);
-            double daysDiff = Math.Floor((dtNow - dtamortizacije).TotalDays);
-            double nabavnaVrijednost = double.Parse(inputNabavnaVrednost.Text);
-            double stopaAmortizacije = double.Parse(inputStopaAmortizacije.Text);
-            //double ispravkaVrijednosti = ((nabavnaVrijednost * stopaAmortizacije * daysDiff) / (365 * 100));
-            double ispravkaVrijednosti = OSUtil.ispravkaVrijednosti(nabavnaVrijednost, dtNow, dtamortizacije,stopaAmortizacije);
-            double sadasnjaVrijednost = nabavnaVrijednost - ispravkaVrijednosti;
-            
-            
-            inputIspravkaVrijednosti.Text = ispravkaVrijednosti.ToString("0.00") + "";
-            inputSadasnjaVrednost.Text = sadasnjaVrijednost.ToString("0.00") + "";
+            try
+            {
+                DateTime dtDatumOtpisa = DateTime.ParseExact(inputDatumOtpisa.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture);
+                DateTime dtamortizacije = DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture);
+                DateTime dtNow = DateTime.Now;
+                Console.WriteLine(dtDatumOtpisa + " - " + dtamortizacije);
+                double daysDiff = Math.Floor((dtNow - dtamortizacije).TotalDays);
+                double nabavnaVrijednost = double.Parse(inputNabavnaVrednost.Text);
+                double stopaAmortizacije = double.Parse(inputStopaAmortizacije.Text);
+                //double ispravkaVrijednosti = ((nabavnaVrijednost * stopaAmortizacije * daysDiff) / (365 * 100));
+                double ispravkaVrijednosti = OSUtil.ispravkaVrijednosti(nabavnaVrijednost, dtNow, dtamortizacije, stopaAmortizacije);
+                double sadasnjaVrijednost = nabavnaVrijednost - ispravkaVrijednosti;
+
+
+                inputIspravkaVrijednosti.Text = ispravkaVrijednosti.ToString("0.00") + "";
+                inputSadasnjaVrednost.Text = sadasnjaVrijednost.ToString("0.00") + "";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
             Console.WriteLine("Opa");
         }
 
@@ -141,115 +153,51 @@ namespace OsnovnaSredstva
             TextBox tb = (TextBox)sender;
             if (System.Text.RegularExpressions.Regex.IsMatch(tb.Text, "[^0-9]"))
             {
-                lblMessage.Text= "Please enter only numbers.";
+                tb.Text = tb.Text.Substring(0, tb.Text.Length - 1);
+                lblMessage.Text = "Please enter only numbers.";
                 //tb.Text.Remove(tb.Text.Length - 1);
-                tb.Text = tb.Text.Substring(0, tb.Text.Length - 1);
-                tb.SelectionStart = tb.Text.Length;
-                tb.BackColor = Color.FromArgb(255,204,204);
-            }
-            else
-            {
-                tb.BackColor = Color.White;
-            }
-        }
-
-        private void textbox_OnlyNumbersAndDecimal(object sender, EventArgs e)
-        {
-            Console.WriteLine("Decimal separator: "+ CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
-            TextBox tb = (TextBox)sender;
-            if (System.Text.RegularExpressions.Regex.IsMatch(tb.Text, "[^0-9"+ CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator + "]"))
-            {
-                lblMessage.Text = "Please enter only numbers and decimal.";
-                tb.Text = tb.Text.Substring(0, tb.Text.Length - 1);
+                lblMessage.BackColor = Color.White;
+                lblMessage.BorderStyle = BorderStyle.FixedSingle;
                 tb.SelectionStart = tb.Text.Length;
                 tb.BackColor = Color.FromArgb(255, 204, 204);
             }
             else
             {
                 tb.BackColor = Color.White;
+                lblMessage.Text = "";
+            }
+        }
+
+        private void textbox_OnlyNumbersAndDecimal(object sender, EventArgs e)
+        {
+            Console.WriteLine("Decimal separator: " + CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
+            TextBox tb = (TextBox)sender;
+            if (System.Text.RegularExpressions.Regex.IsMatch(tb.Text, "[^0-9" + CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator + "]"))
+            {
+                tb.Text = tb.Text.Substring(0, tb.Text.Length - 1);
+                lblMessage.Text = "Please enter only numbers and decimal.";
+                lblMessage.BackColor = Color.White;
+                lblMessage.BorderStyle = BorderStyle.FixedSingle;
+                tb.SelectionStart = tb.Text.Length;
+                tb.BackColor = Color.FromArgb(255, 204, 204);
+            }
+            else
+            {
+                tb.BackColor = Color.White;
+                lblMessage.Text = "";
             }
         }
 
         private void btnPregled_Click(object sender, EventArgs e)
         {
-            //DBManager.GetAll();
-            // Create an unbound DataGridView by declaring a column count.
-            dataGridView1.ColumnCount = 4;
-            dataGridView1.ColumnHeadersVisible = true;
 
-            // Set the column header style.
-            DataGridViewCellStyle columnHeaderStyle = new DataGridViewCellStyle();
-
-            columnHeaderStyle.BackColor = Color.Beige;
-            columnHeaderStyle.Font = new Font("Verdana", 10, FontStyle.Bold);
-            dataGridView1.ColumnHeadersDefaultCellStyle = columnHeaderStyle;
-
-            // Set the column header names.
-            dataGridView1.Columns[0].Name = "Recipe";
-            dataGridView1.Columns[1].Name = "Category";
-            dataGridView1.Columns[2].Name = "Main Ingredients";
-            dataGridView1.Columns[3].Name = "Rating";
-
-            // Populate the rows.
-            string[] row1 = new string[] { "Meatloaf", "Main Dish", "ground beef",
-           "**" };
-            string[] row2 = new string[] { "Key Lime Pie", "Dessert",
-           "lime juice, evaporated milk", "****" };
-            string[] row3 = new string[] { "Orange-Salsa Pork Chops", "Main Dish",
-           "pork chops, salsa, orange juice", "****" };
-            string[] row4 = new string[] { "Black Bean and Rice Salad", "Salad",
-           "black beans, brown rice", "****" };
-            string[] row5 = new string[] { "Chocolate Cheesecake", "Dessert",
-           "cream cheese", "***" };
-            string[] row6 = new string[] { "Black Bean Dip", "Appetizer",
-           "black beans, sour cream", "***" };
-            object[] rows = new object[] { row1, row2, row3, row4, row5, row6 };
-
-            foreach (string[] rowArray in rows)
-            {
-                dataGridView1.Rows.Add(rowArray);
-            }
         }
 
         private void btnPregled_Click_1(object sender, EventArgs e)
         {
             PregledForm pregled = new PregledForm();
             pregled.ShowDialog();
-            dataGridView1.ColumnCount = 4;
-            dataGridView1.ColumnHeadersVisible = true;
 
-            // Set the column header style.
-            DataGridViewCellStyle columnHeaderStyle = new DataGridViewCellStyle();
-
-            columnHeaderStyle.BackColor = Color.Beige;
-            columnHeaderStyle.Font = new Font("Verdana", 10, FontStyle.Bold);
-            dataGridView1.ColumnHeadersDefaultCellStyle = columnHeaderStyle;
-
-            // Set the column header names.
-            dataGridView1.Columns[0].Name = "Recipe";
-            dataGridView1.Columns[1].Name = "Category";
-            dataGridView1.Columns[2].Name = "Main Ingredients";
-            dataGridView1.Columns[3].Name = "Rating";
-
-            // Populate the rows.
-            string[] row1 = new string[] { "Meatloaf", "Main Dish", "ground beef",
-           "**" };
-            string[] row2 = new string[] { "Key Lime Pie", "Dessert",
-           "lime juice, evaporated milk", "****" };
-            string[] row3 = new string[] { "Orange-Salsa Pork Chops", "Main Dish",
-           "pork chops, salsa, orange juice", "****" };
-            string[] row4 = new string[] { "Black Bean and Rice Salad", "Salad",
-           "black beans, brown rice", "****" };
-            string[] row5 = new string[] { "Chocolate Cheesecake", "Dessert",
-           "cream cheese", "***" };
-            string[] row6 = new string[] { "Black Bean Dip", "Appetizer",
-           "black beans, sour cream", "***" };
-            object[] rows = new object[] { row1, row2, row3, row4, row5, row6 };
-
-            foreach (string[] rowArray in rows)
-            {
-                dataGridView1.Rows.Add(rowArray);
-            }
         }
 
         private void btnStampanje_Click(object sender, EventArgs e)
@@ -270,7 +218,7 @@ namespace OsnovnaSredstva
 
 
             //Console.WriteLine(OSUtil.ispravkaVrijednosti(double.Parse(inputNabavnaVrednost.Text), DateTime.ParseExact("2017-05-30", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture), double.Parse(inputStopaAmortizacije.Text)));
-            List<OSItem> itemsForList = DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(DateTime.ParseExact("27.07.2016.", "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture));
+            List<OSItem> itemsForList = DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(DateTime.ParseExact("27.07.2016.", "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture)).items;
 
 
 
@@ -310,6 +258,24 @@ namespace OsnovnaSredstva
                 //dgvPregled.Rows.Add(row.ToArray());
             }
             file.Close();
+        }
+
+        private void dataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            DataGridView dgv = (DataGridView)sender;
+            Console.WriteLine(e.RowIndex);
+        }
+
+        public void showErrorMessage(string msg)
+        {
+            lblMessage.ForeColor = Color.Red;
+            lblMessage.Text = msg;
+        }
+
+        public void showMessage(string msg)
+        {
+            lblMessage.ForeColor = Color.Green;
+            lblMessage.Text = msg;
         }
     }
 }
