@@ -10,7 +10,9 @@ using System.Windows.Forms;
 using System.Reflection;
 using System.Drawing.Printing;
 using System.Globalization;
-
+using NPOI.HSSF.Model; // InternalWorkbook
+using NPOI.HSSF.UserModel; // HSSFWorkbook, HSSFSheet
+using System.IO;
 
 namespace OsnovnaSredstva
 {
@@ -23,6 +25,7 @@ namespace OsnovnaSredstva
         List<DBManager.FieldConditionValue> fcvlist = new List<DBManager.FieldConditionValue>();
         Guid lastSearchFcvListID, fcvListId;
         Font font = new Font("Arial", 8);
+        bool notPrintPreviewed, notPrinted;
 
         public PregledForm()
         {
@@ -31,7 +34,7 @@ namespace OsnovnaSredstva
 
 
             itemsForList = DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(DateTime.Now);
-            dgvPregled.Font = new Font("Courier New", 8);
+            font = new Font("Courier New", 8);
 
 
 
@@ -95,38 +98,49 @@ namespace OsnovnaSredstva
         //define rw as globly variable in form
         public void zpt()
         {
-            PrintDialog pd = new PrintDialog();
-            PrintDocument pdoc = new PrintDocument();
+            try {
+                PrintDialog pd = new PrintDialog();
+                PrintDocument pdoc = new PrintDocument();
 
-            PrinterSettings ps = new PrinterSettings();
-            
-            PaperSize psz = new PaperSize("Custom", 100, 200);
-            PaperSize pszA4 = new PaperSize();
-            pszA4.RawKind = (int)PaperKind.A4;
-            pd.Document = pdoc;
-            pd.Document.DefaultPageSettings.PaperSize = pszA4;
-            //pdoc.DefaultPageSettings.PaperSize.Height = 820;
-            //pdoc.DefaultPageSettings.PaperSize.Width = 700;
-            pdoc.DefaultPageSettings.Landscape = true;
-            pdoc.PrintPage += new PrintPageEventHandler(pdoc_PrintPage);
-            DialogResult res = pd.ShowDialog();
-            if (res == DialogResult.OK)
-            {
-                PrintPreviewDialog prv = new PrintPreviewDialog();
-                prv.Document = pdoc;
-                res = prv.ShowDialog();
+                PrinterSettings ps = new PrinterSettings();
 
+                PaperSize psz = new PaperSize("Custom", 100, 200);
+                PaperSize pszA4 = new PaperSize();
+                pszA4.RawKind = (int)PaperKind.A4;
+                pd.Document = pdoc;
+                pd.Document.DefaultPageSettings.PaperSize = pszA4;
+                //pdoc.DefaultPageSettings.PaperSize.Height = 820;
+                //pdoc.DefaultPageSettings.PaperSize.Width = 700;
+                pdoc.DefaultPageSettings.Landscape = true;
+
+                pdoc.PrintPage += new PrintPageEventHandler(pdoc_PrintPage);
+                DialogResult res = pd.ShowDialog();
                 if (res == DialogResult.OK)
                 {
-                    pdoc.Print();
+                    PrintDocument pdocDuplicate = pdoc;
 
+                    PrintPreviewDialog prv = new PrintPreviewDialog();
+
+                    prv.Document = pdoc;
+
+                    res = prv.ShowDialog();
+
+                    if (res == DialogResult.OK)
+                    {
+                        pdocDuplicate.Print();
+
+                    }
                 }
+            }catch(Exception ex)
+            {
+                Console.WriteLine(ex.StackTrace);
             }
-
         }
         void pdoc_PrintPage(object sender, PrintPageEventArgs e)
         {
 
+            PrintDocument doc = (PrintDocument)sender;
+            doc.InitializeLifetimeService();
             Graphics graphics = e.Graphics;
             //Font font = new Font("Courier New", 10);
             float fontHeight = font.GetHeight();
@@ -141,14 +155,14 @@ namespace OsnovnaSredstva
 
             int offsetY = startY;
             int offsetX = startX;
-            string[] columns = { "#", "inventurniBroj", "naziv", "kolicina", "datumNabavke", "datumAmortizacije", "nabavnaVrijednost", "ispravkaVrijednosti", "sadasnjaVrijednost", "konto" };
+            string[] columns = { "#", "inventurniBroj", "brojPoNabavci", "naziv", "kolicina", "datumNabavke", "datumAmortizacije", "nabavnaVrijednost", "ispravkaVrijednosti", "sadasnjaVrijednost", "konto" };
 
             SizeF maxStringSize2 = new SizeF();
             maxStringSize2 = e.Graphics.MeasureString("Bootta11", font);
             foreach (string cname in columns)
             {
                 SizeF maxStringSize = new SizeF();
-                if (cname.Equals("#")) { maxStringSize = e.Graphics.MeasureString((itemsForList.items.Count).ToString().Length > OSUtil.columnNames[cname].Length ? (itemsForList.items.Count).ToString() : OSUtil.columnNames[cname], dgvPregled.Font); maxStringSize.Width += 2; }
+                if (cname.Equals("#")) { maxStringSize = e.Graphics.MeasureString((itemsForList.items.Count).ToString().Length > OSUtil.columnNames[cname].Length ? (itemsForList.items.Count).ToString() : OSUtil.columnNames[cname], font); maxStringSize.Width += 2; }
                 else maxStringSize = e.Graphics.MeasureString(itemsForList.fieldMaxLength[cname], font);
 
                 graphics.DrawRectangle(Pens.Black, offsetX, offsetY, maxStringSize.Width, dgvPregled.Rows[0].Height);
@@ -162,32 +176,23 @@ namespace OsnovnaSredstva
 
                 offsetX += (int)maxStringSize.Width;
             }
-            
+
             StringFormat stringDrawFormat2 = new StringFormat();
             stringDrawFormat2.Alignment = StringAlignment.Center;
             stringDrawFormat2.LineAlignment = StringAlignment.Center;
-            
+
             offsetY += dgvPregled.Rows[0].Height;
-            
+
             int a = itemsForList.items.Count;
             int c = dgvPregled.Columns.Count;
             Type ositemType = typeof(OSItem);
             int rb = 1;
-            //offsetY += dgvPregled.Rows[itemPrintNum].Height*4;
-            /*
-            if (rb == 1)
-            {
-                RectangleF rectf2 = new RectangleF((float)offsetX, ((float)(offsetY)), (float)maxStringSize2.Width, (float)dgvPregled.Rows[0].Height);
-                graphics.DrawString("Bootta", font, Brushes.Black, rectf2, stringDrawFormat2);
-                rb++;
-                offsetY += dgvPregled.Rows[itemPrintNum].Height * 4;
-            }
-            */
+            
             while (itemPrintNum < a)
             {
-                
+
                 offsetX = startX;
-                if ((offsetY) > (e.PageBounds.Height - startY - 10))
+                if ((offsetY) > (e.PageBounds.Height - startY - 10) && (notPrintPreviewed || notPrinted))
                 {
 
                     offsetY = startY;
@@ -201,19 +206,20 @@ namespace OsnovnaSredstva
                         itemPrintNum = 0;
                     }
                 }
-                
+
                 foreach (string cname in columns)
                 {
                     PropertyInfo prop = ositemType.GetProperty(cname);
                     SizeF maxStringSize = new SizeF();
 
-                    if (cname.Equals("#")) { maxStringSize = e.Graphics.MeasureString((itemsForList.items.Count).ToString().Length > OSUtil.columnNames[cname].Length ? (itemsForList.items.Count).ToString() : OSUtil.columnNames[cname], dgvPregled.Font); maxStringSize.Width += 2; }
+                    if (cname.Equals("#")) { maxStringSize = e.Graphics.MeasureString((itemsForList.items.Count).ToString().Length > OSUtil.columnNames[cname].Length ? (itemsForList.items.Count).ToString() : OSUtil.columnNames[cname], font); maxStringSize.Width += 2; }
                     else maxStringSize = e.Graphics.MeasureString(itemsForList.fieldMaxLength[cname], font);
 
                     //graphics.DrawString(Convert.ToString(dataGridView1.Rows[i].Cells[0].Value), new Font("Courier New", 10), new SolidBrush(Color.Black), startX, startY + Offset);
                     graphics.DrawRectangle(Pens.Black, offsetX, offsetY, maxStringSize.Width, dgvPregled.Rows[itemPrintNum].Height);
                     //graphics.FillRectangle(Brushes.White, new Rectangle(offsetX + 1, offsetY + 1,(int)maxStringSize.Width - 1, dgvPregled.Rows[i].Height));
-                    graphics.FillRectangle(Brushes.White, new Rectangle(offsetX + 1, offsetY + 1, (int)maxStringSize.Width - 1, dgvPregled.Rows[0].Height));
+                    
+                        graphics.FillRectangle(Brushes.White, new Rectangle(offsetX + 1, offsetY + 1, (int)maxStringSize.Width - 1, dgvPregled.Rows[0].Height-2));
                     RectangleF rectf = new RectangleF((float)offsetX, ((float)(offsetY)), (float)maxStringSize.Width, (float)dgvPregled.Rows[itemPrintNum].Height);
                     StringFormat stringDrawFormat = new StringFormat();
                     stringDrawFormat.Alignment = StringAlignment.Center;
@@ -225,7 +231,7 @@ namespace OsnovnaSredstva
                     }
                     else if (cname.StartsWith("datum"))
                     {
-                        graphics.DrawString(DateTime.ParseExact(prop.GetValue(itemsForList.items[itemPrintNum]).ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture).ToString("dd.MM.yyyy") + "", dgvPregled.Font, Brushes.Black, rectf, stringDrawFormat);
+                        graphics.DrawString(DateTime.ParseExact(prop.GetValue(itemsForList.items[itemPrintNum]).ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture).ToString("dd.MM.yyyy") + "", font, Brushes.Black, rectf, stringDrawFormat);
                     }
                     else
                     {
@@ -237,16 +243,29 @@ namespace OsnovnaSredstva
                     //offsetX += dgvPregled.Columns[cname].GetPreferredWidth(DataGridViewAutoSizeColumnMode.AllCells,true);
                     offsetX += (int)maxStringSize.Width;
                 }
-                
+
                 offsetY += dgvPregled.Rows[itemPrintNum].Height;
                 itemPrintNum++;
             }
-            
+            if (itemPrintNum >= a)
+            {
+                itemPrintNum = 0;
+                if (notPrintPreviewed == false)
+                    notPrintPreviewed = false;
+                if (notPrintPreviewed)
+                {
+                    notPrintPreviewed = false;
+
+                }
+            }
+
         }
 
         private void btnPrint_Click(object sender, EventArgs e)
         {
             itemPrintNum = 0;
+            notPrintPreviewed = true;
+            notPrinted = true;
             zpt();
 
         }
@@ -298,6 +317,8 @@ namespace OsnovnaSredstva
         {
             //System.IO.StreamWriter file = new System.IO.StreamWriter(@"items.csv", false);
             System.IO.StreamWriter file;
+            HSSFWorkbook wb;
+            HSSFSheet sh;
 
             //System.Web.HttpContext.Current.Response.Write("Some Text");
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
@@ -307,10 +328,11 @@ namespace OsnovnaSredstva
             DialogResult? result = saveFileDialog1.ShowDialog();
             if (result == DialogResult.OK)
             {
+                //Console.WriteLine(saveFileDialog1.);
                 System.IO.Stream dlgstream;
                 if ((dlgstream = saveFileDialog1.OpenFile()) != null)
                 {
-
+                    
                     file = new System.IO.StreamWriter(dlgstream);
 
                     //System.IO.StreamWriter file = new System.IO.StreamWriter(Response.OutputStream, Encoding.UTF8);
@@ -418,7 +440,7 @@ namespace OsnovnaSredstva
 
             if (cbFieldName.SelectedIndex > 0)
             {
-                if (cbCondition.SelectedIndex > 0 && inputSearchValue.Text.Length > 0)
+                if (cbCondition.SelectedIndex > 0 )
                 {
                     selectedItem = cbFieldName.Items[cbFieldName.SelectedIndex].ToString().Trim();
                     if (selectedItem.ToLower().StartsWith("datum"))
@@ -498,6 +520,11 @@ namespace OsnovnaSredstva
             }
         }
 
+        private void dtAmortizacije_ValueChanged(object sender, EventArgs e)
+        {
+            fcvListId = Guid.NewGuid();
+        }
+
         private void btnSearch_Click_1(object sender, EventArgs e)
         {
             if (fcvListId != lastSearchFcvListID)
@@ -516,6 +543,9 @@ namespace OsnovnaSredstva
             fcvlist.Clear();
             cbActiveFilters.Items.Clear();
             cbActiveFilters.Enabled = false;
+            FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(dtAmortizacije.Value));
+
+            lastSearchFcvListID = fcvListId;
         }
 
 

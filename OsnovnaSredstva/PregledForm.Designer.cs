@@ -190,6 +190,7 @@
             this.dtAmortizacije.Name = "dtAmortizacije";
             this.dtAmortizacije.Size = new System.Drawing.Size(98, 20);
             this.dtAmortizacije.TabIndex = 12;
+            this.dtAmortizacije.ValueChanged += new System.EventHandler(this.dtAmortizacije_ValueChanged);
             // 
             // label2
             // 

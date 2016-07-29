@@ -214,9 +214,10 @@ namespace OsnovnaSredstva
                 if (lwf.fieldMaxLength["konto"].Length < item.konto.Length) lwf.fieldMaxLength["konto"] = item.konto;
 
                 Console.WriteLine("D: " + reader.GetDateTime(4).ToString("dd.MM.yyyy."));
+                
                 item.datumNabavke = reader.GetString(4).ToString();
-                if (!lwf.fieldMaxLength.ContainsKey("datumNabavke")) lwf.fieldMaxLength.Add("datumNabavke", "Datum Nabavke");
-                if (lwf.fieldMaxLength["datumNabavke"].Length < item.datumNabavke.Length) lwf.fieldMaxLength["datumNabavke"] = item.datumNabavke;
+                if (!lwf.fieldMaxLength.ContainsKey("datumNabavke")) lwf.fieldMaxLength.Add("datumNabavke", OSUtil.columnNames["datumNabavke"]);
+                if (lwf.fieldMaxLength["datumNabavke"].Length < item.datumNabavke.Split(' ')[0].Length) lwf.fieldMaxLength["datumNabavke"] = item.datumNabavke.Split(' ')[0];
 
                 item.datumAmortizacije = reader.GetString(7).ToString();
                 if (!lwf.fieldMaxLength.ContainsKey("datumAmortizacije")) lwf.fieldMaxLength.Add("datumAmortizacije", "Datum Amortizacije");
@@ -271,7 +272,7 @@ namespace OsnovnaSredstva
                 if (lwf.fieldMaxLength["poreskeGrupe"].Length < item.poreskeGrupe.Length) lwf.fieldMaxLength["poreskeGrupe"] = item.poreskeGrupe;
 
                 item.brojPoNabavci = int.Parse(reader["broj_po_nabavci"].ToString());
-                if (!lwf.fieldMaxLength.ContainsKey("brojPoNabavci")) lwf.fieldMaxLength.Add("brojPoNabavci", "Broj Po Nabavci");
+                if (!lwf.fieldMaxLength.ContainsKey("brojPoNabavci")) lwf.fieldMaxLength.Add("brojPoNabavci", OSUtil.columnNames["brojPoNabavci"]);
                 if (lwf.fieldMaxLength["brojPoNabavci"].Length < item.brojPoNabavci.ToString().Length) lwf.fieldMaxLength["brojPoNabavci"] = item.brojPoNabavci.ToString();
 
                 item.amortizacionaGrupa = reader["amortizaciona_grupa"].ToString();
@@ -378,9 +379,7 @@ namespace OsnovnaSredstva
                 if (!lwf.fieldMaxLength.ContainsKey("datumAmortizacije")) lwf.fieldMaxLength.Add("datumAmortizacije", "Datum Amortizacije");
                 if (lwf.fieldMaxLength["datumAmortizacije"].Length < item.datumAmortizacije.Length) lwf.fieldMaxLength["datumAmortizacije"] = item.datumAmortizacije;
 
-                item.ispravkaVrijednosti = Math.Round(OSUtil.ispravkaVrijednosti(item.nabavnaVrijednost, datumAmortizacije, DateTime.ParseExact(item.datumAmortizacije, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture), item.stopaAmortizacije), 2);
-                if (!lwf.fieldMaxLength.ContainsKey("ispravkaVrijednosti")) lwf.fieldMaxLength.Add("ispravkaVrijednosti", item.inventurniBroj);
-                else if (lwf.fieldMaxLength["ispravkaVrijednosti"].Length < item.inventurniBroj.Length) lwf.fieldMaxLength.Add("ispravkaVrijednosti", item.ispravkaVrijednosti.ToString());
+                
                 item.vek = double.Parse(reader["vek"].ToString());
                 if (!lwf.fieldMaxLength.ContainsKey("vek")) lwf.fieldMaxLength.Add("vek", "vek");
                 if (lwf.fieldMaxLength["vek"].Length < item.vek.ToString().Length) lwf.fieldMaxLength["Vek"] = item.vek.ToString();
@@ -389,10 +388,7 @@ namespace OsnovnaSredstva
                 if (!lwf.fieldMaxLength.ContainsKey("datumOtpisa")) lwf.fieldMaxLength.Add("datumOtpisa", "Datum Otpisa");
                 if (lwf.fieldMaxLength["datumOtpisa"].Length < item.datumOtpisa.Length) lwf.fieldMaxLength["datumOtpisa"] = item.datumOtpisa;
 
-                item.sadasnjaVrijednost = Math.Round(item.nabavnaVrijednost - item.ispravkaVrijednosti, 2);
-                if (!lwf.fieldMaxLength.ContainsKey("sadasnjaVrijednost")) lwf.fieldMaxLength.Add("sadasnjaVrijednost", item.inventurniBroj);
-                else if (lwf.fieldMaxLength["sadasnjaVrijednost"].Length < item.inventurniBroj.Length) lwf.fieldMaxLength.Add("sadasnjaVrijednost", item.sadasnjaVrijednost.ToString());
-
+                
                 item.jedinicaMjere = reader["jedinica_mjere"].ToString();
                 if (!lwf.fieldMaxLength.ContainsKey("jednicaMjere")) lwf.fieldMaxLength.Add("jednicaMjere", "Jednica Mjere");
                 if (lwf.fieldMaxLength["jednicaMjere"].Length < item.jedinicaMjere.Length) lwf.fieldMaxLength["jednicaMjere"] = item.jedinicaMjere;
@@ -426,7 +422,7 @@ namespace OsnovnaSredstva
                 if (lwf.fieldMaxLength["poreskeGrupe"].Length < item.poreskeGrupe.Length) lwf.fieldMaxLength["poreskeGrupe"] = item.poreskeGrupe;
 
                 item.brojPoNabavci = int.Parse(reader["broj_po_nabavci"].ToString());
-                if (!lwf.fieldMaxLength.ContainsKey("brojPoNabavci")) lwf.fieldMaxLength.Add("brojPoNabavci", "Broj Po Nabavci");
+                if (!lwf.fieldMaxLength.ContainsKey("brojPoNabavci")) lwf.fieldMaxLength.Add("brojPoNabavci", OSUtil.columnNames["brojPoNabavci"]);
                 if (lwf.fieldMaxLength["brojPoNabavci"].Length < item.brojPoNabavci.ToString().Length) lwf.fieldMaxLength["brojPoNabavci"] = item.brojPoNabavci.ToString();
 
                 item.amortizacionaGrupa = reader["amortizaciona_grupa"].ToString();
@@ -440,6 +436,14 @@ namespace OsnovnaSredstva
                 item.active = reader["active"].ToString();
                 if (!lwf.fieldMaxLength.ContainsKey("active")) lwf.fieldMaxLength.Add("active", "Active");
                 if (lwf.fieldMaxLength["active"].Length < item.active.Length) lwf.fieldMaxLength["active"] = item.active;
+
+                item.ispravkaVrijednosti = Math.Round(OSUtil.ispravkaVrijednosti(item.nabavnaVrijednost, datumAmortizacije, DateTime.ParseExact(item.datumAmortizacije, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture), item.stopaAmortizacije), 2);
+                if (!lwf.fieldMaxLength.ContainsKey("ispravkaVrijednosti")) lwf.fieldMaxLength.Add("ispravkaVrijednosti", item.inventurniBroj);
+                else if (lwf.fieldMaxLength["ispravkaVrijednosti"].Length < item.inventurniBroj.Length) lwf.fieldMaxLength["ispravkaVrijednosti"] = item.ispravkaVrijednosti.ToString();
+
+                item.sadasnjaVrijednost = Math.Round(item.nabavnaVrijednost - item.ispravkaVrijednosti, 2);
+                if (!lwf.fieldMaxLength.ContainsKey("sadasnjaVrijednost")) lwf.fieldMaxLength.Add("sadasnjaVrijednost", item.inventurniBroj);
+                else if (lwf.fieldMaxLength["sadasnjaVrijednost"].Length < item.inventurniBroj.Length) lwf.fieldMaxLength["sadasnjaVrijednost"] = item.sadasnjaVrijednost.ToString();
 
                 Console.WriteLine(item.nabavnaVrijednost);
 
