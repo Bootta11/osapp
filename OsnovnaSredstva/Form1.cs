@@ -44,6 +44,8 @@ namespace OsnovnaSredstva
             inputNabavnaVrednost.LostFocus += textbox_OnlyNumbersAndDecimal;
             inputVek.LostFocus += textbox_OnlyNumbersAndDecimal;
             inputBrojPoNabavci.LostFocus += textbox_OnlyNumbers;
+            //Controls.SetChildIndex(pictureBox1, 0);
+
         }
 
         public bool checkFieldsOK()
@@ -53,16 +55,27 @@ namespace OsnovnaSredstva
 
         private void btnSnimiti_Click(object sender, EventArgs e)
         {
+            bool parseOK = true;
+            double temp = 0;
+            int tempInt = 0;
             OSItem item = new OSItem();
             item.inventurniBroj = inputInventurniBroj.Text;
             item.naziv = inputNaziv.Text;
-            item.kolicina = double.Parse(inputKolicina.Text);
+            
+            parseOK = double.TryParse(inputKolicina.Text, out temp);
+            item.kolicina = temp;
+            temp = 0;
             item.datumNabavke = inputDatumNabavke.Text;
-            item.nabavnaVrijednost = double.Parse(inputNabavnaVrednost.Text);
+            
+            parseOK = double.TryParse(inputNabavnaVrednost.Text, out temp);
+            item.nabavnaVrijednost = temp;
+            temp = 0;
             item.konto = inputKonto.Text;
             item.datumAmortizacije = inputDatumAmortizacije.Text;
             //item.ispravkaVrijednosti = double.Parse(inputIspravkaVrijednosti.Text);
-            item.vek = double.Parse(inputVek.Text);
+            parseOK = double.TryParse(inputVek.Text, out temp);
+            item.vek = temp;
+            temp = 0;
             item.datumOtpisa = inputDatumOtpisa.Text;
             //item.sadasnjaVrijednost = double.Parse(inputSadasnjaVrednost.Text);
             item.jedinicaMjere = inputjednicaMjere.Text;
@@ -73,12 +86,24 @@ namespace OsnovnaSredstva
             item.smjestaj = inputSmjestaj.Text;
             item.metodaAmortizacije = inputMetodaAmortizacije.Text;
             item.poreskeGrupe = inputPoreskeGrupe.Text;
-            item.brojPoNabavci = int.Parse(inputBrojPoNabavci.Text);
+            parseOK = int.TryParse(inputBrojPoNabavci.Text, out tempInt);
+            item.brojPoNabavci = tempInt;
+            tempInt = 0;
             item.amortizacionaGrupa = inputAmortizacijaGrupe.Text;
-            item.stopaAmortizacije = double.Parse(inputStopaAmortizacije.Text);
+            parseOK = double.TryParse(inputStopaAmortizacije.Text, out temp);
+            item.stopaAmortizacije = temp;
+            temp = 0;
             item.active = "active";
 
-            string msg = DBManager.insertOS(item);
+            string msg = "";
+            if (parseOK)
+                msg = DBManager.insertOS(item);
+            else
+            {
+                showErrorMessage( "Nisu unijeti validni podaci");
+                return;
+            }
+
             if (!msg.Equals(""))
             {
                 showErrorMessage("Error: Nije moguce unijeti novo OS");
@@ -97,7 +122,7 @@ namespace OsnovnaSredstva
 
         private void inputNabavnaVrednost_Leave(object sender, EventArgs e)
         {
-            CalculateIspravkaVrijednostiSadasnjaVrijednost();
+           // CalculateIspravkaVrijednostiSadasnjaVrijednost();
         }
 
 
@@ -107,19 +132,19 @@ namespace OsnovnaSredstva
             Console.WriteLine(inputDatumNabavke.Text);
             inputDatumAmortizacije.MinDate = inputDatumNabavke.Value;
             inputDatumOtpisa.MinDate = inputDatumNabavke.Value;
-            CalculateIspravkaVrijednostiSadasnjaVrijednost();
+            //CalculateIspravkaVrijednostiSadasnjaVrijednost();
         }
 
         private void inputDatumAmortizacije_ValueChanged(object sender, EventArgs e)
         {
-            CalculateIspravkaVrijednostiSadasnjaVrijednost();
+            //CalculateIspravkaVrijednostiSadasnjaVrijednost();
         }
 
         private void inputDatumOtpisa_ValueChanged(object sender, EventArgs e)
         {
             inputDatumAmortizacije.MaxDate = inputDatumOtpisa.Value;
             inputDatumNabavke.MaxDate = inputDatumOtpisa.Value;
-            CalculateIspravkaVrijednostiSadasnjaVrijednost();
+           // CalculateIspravkaVrijednostiSadasnjaVrijednost();
         }
 
         public void CalculateIspravkaVrijednostiSadasnjaVrijednost()
@@ -138,8 +163,8 @@ namespace OsnovnaSredstva
                 double sadasnjaVrijednost = nabavnaVrijednost - ispravkaVrijednosti;
 
 
-                inputIspravkaVrijednosti.Text = ispravkaVrijednosti.ToString("0.00") + "";
-                inputSadasnjaVrednost.Text = sadasnjaVrijednost.ToString("0.00") + "";
+                //inputIspravkaVrijednosti.Text = ispravkaVrijednosti.ToString("0.00") + "";
+                //inputSadasnjaVrednost.Text = sadasnjaVrijednost.ToString("0.00") + "";
             }
             catch (Exception ex)
             {
@@ -151,7 +176,7 @@ namespace OsnovnaSredstva
         private void inputStopaAmortizacije_Leave(object sender, EventArgs e)
         {
 
-            CalculateIspravkaVrijednostiSadasnjaVrijednost();
+            //CalculateIspravkaVrijednostiSadasnjaVrijednost();
         }
 
         private void textbox_OnlyNumbers(object sender, EventArgs e)
@@ -171,6 +196,8 @@ namespace OsnovnaSredstva
             {
                 tb.BackColor = Color.White;
                 lblMessage.Text = "";
+                lblMessage.BackColor = Color.Transparent;
+                lblMessage.BorderStyle = BorderStyle.None;
             }
         }
 
@@ -191,6 +218,8 @@ namespace OsnovnaSredstva
             {
                 tb.BackColor = Color.White;
                 lblMessage.Text = "";
+                lblMessage.BackColor = Color.Transparent;
+                lblMessage.BorderStyle = BorderStyle.None;
             }
         }
 
@@ -241,7 +270,7 @@ namespace OsnovnaSredstva
 
         public void hideMessage()
         {
-            
+
             lblMessage.Text = "";
             lblMessage.BackColor = Color.Transparent;
             lblMessage.BorderStyle = BorderStyle.None;
@@ -263,9 +292,9 @@ namespace OsnovnaSredstva
                 System.IO.Stream dlgstream;
                 if ((dlgstream = saveFileDialog1.OpenFile()) != null)
                 {
-                    
+
                     file = new System.IO.StreamWriter(dlgstream);
-                    
+
                     //System.IO.StreamWriter file = new System.IO.StreamWriter(Response.OutputStream, Encoding.UTF8);
 
                     //Console.WriteLine(OSUtil.ispravkaVrijednosti(double.Parse(inputNabavnaVrednost.Text), DateTime.ParseExact("2017-05-30", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture), double.Parse(inputStopaAmortizacije.Text)));
@@ -314,6 +343,14 @@ namespace OsnovnaSredstva
             }
         }
 
-        
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tblInput_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
     }
 }

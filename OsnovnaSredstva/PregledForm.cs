@@ -20,6 +20,10 @@ namespace OsnovnaSredstva
         List<OSItem> changedItems = new List<OSItem>();
         static ListWithFieldMaxLengths itemsForList = new ListWithFieldMaxLengths();
         Dictionary<int, string> dictFields = new Dictionary<int, string>();
+        List<DBManager.FieldConditionValue> fcvlist = new List<DBManager.FieldConditionValue>();
+        Guid lastSearchFcvListID, fcvListId;
+        Font font = new Font("Arial", 8);
+
         public PregledForm()
         {
             InitializeComponent();
@@ -45,6 +49,8 @@ namespace OsnovnaSredstva
                 cbi++;
             }
             FillGridView(itemsForList);
+            lastSearchFcvListID = Guid.NewGuid();
+            fcvListId = lastSearchFcvListID;
         }
 
         public void FillGridView(ListWithFieldMaxLengths itemslist)
@@ -93,7 +99,7 @@ namespace OsnovnaSredstva
             PrintDocument pdoc = new PrintDocument();
 
             PrinterSettings ps = new PrinterSettings();
-            Font font = new Font("Arial", 10);
+            
             PaperSize psz = new PaperSize("Custom", 100, 200);
             PaperSize pszA4 = new PaperSize();
             pszA4.RawKind = (int)PaperKind.A4;
@@ -109,9 +115,11 @@ namespace OsnovnaSredstva
                 PrintPreviewDialog prv = new PrintPreviewDialog();
                 prv.Document = pdoc;
                 res = prv.ShowDialog();
+
                 if (res == DialogResult.OK)
                 {
                     pdoc.Print();
+
                 }
             }
 
@@ -120,7 +128,7 @@ namespace OsnovnaSredstva
         {
 
             Graphics graphics = e.Graphics;
-            Font font = new Font("Courier New", 10);
+            //Font font = new Font("Courier New", 10);
             float fontHeight = font.GetHeight();
             int startX = 10;
             int startY = 10;
@@ -135,12 +143,13 @@ namespace OsnovnaSredstva
             int offsetX = startX;
             string[] columns = { "#", "inventurniBroj", "naziv", "kolicina", "datumNabavke", "datumAmortizacije", "nabavnaVrijednost", "ispravkaVrijednosti", "sadasnjaVrijednost", "konto" };
 
-
+            SizeF maxStringSize2 = new SizeF();
+            maxStringSize2 = e.Graphics.MeasureString("Bootta11", font);
             foreach (string cname in columns)
             {
                 SizeF maxStringSize = new SizeF();
                 if (cname.Equals("#")) { maxStringSize = e.Graphics.MeasureString((itemsForList.items.Count).ToString().Length > OSUtil.columnNames[cname].Length ? (itemsForList.items.Count).ToString() : OSUtil.columnNames[cname], dgvPregled.Font); maxStringSize.Width += 2; }
-                else maxStringSize = e.Graphics.MeasureString(itemsForList.fieldMaxLength[cname], dgvPregled.Font);
+                else maxStringSize = e.Graphics.MeasureString(itemsForList.fieldMaxLength[cname], font);
 
                 graphics.DrawRectangle(Pens.Black, offsetX, offsetY, maxStringSize.Width, dgvPregled.Rows[0].Height);
                 graphics.FillRectangle(Brushes.LightGray, new Rectangle(offsetX + 1, offsetY + 1, (int)maxStringSize.Width - 1, dgvPregled.Rows[0].Height));
@@ -149,17 +158,34 @@ namespace OsnovnaSredstva
                 stringDrawFormat.Alignment = StringAlignment.Center;
                 stringDrawFormat.LineAlignment = StringAlignment.Center;
 
-                graphics.DrawString(OSUtil.columnNames[cname], dgvPregled.Font, Brushes.Black, rectf, stringDrawFormat);
+                graphics.DrawString(OSUtil.columnNames[cname], font, Brushes.Black, rectf, stringDrawFormat);
 
                 offsetX += (int)maxStringSize.Width;
             }
+            
+            StringFormat stringDrawFormat2 = new StringFormat();
+            stringDrawFormat2.Alignment = StringAlignment.Center;
+            stringDrawFormat2.LineAlignment = StringAlignment.Center;
+            
             offsetY += dgvPregled.Rows[0].Height;
+            
             int a = itemsForList.items.Count;
             int c = dgvPregled.Columns.Count;
             Type ositemType = typeof(OSItem);
             int rb = 1;
-            for (; itemPrintNum < a; itemPrintNum++)
+            //offsetY += dgvPregled.Rows[itemPrintNum].Height*4;
+            /*
+            if (rb == 1)
             {
+                RectangleF rectf2 = new RectangleF((float)offsetX, ((float)(offsetY)), (float)maxStringSize2.Width, (float)dgvPregled.Rows[0].Height);
+                graphics.DrawString("Bootta", font, Brushes.Black, rectf2, stringDrawFormat2);
+                rb++;
+                offsetY += dgvPregled.Rows[itemPrintNum].Height * 4;
+            }
+            */
+            while (itemPrintNum < a)
+            {
+                
                 offsetX = startX;
                 if ((offsetY) > (e.PageBounds.Height - startY - 10))
                 {
@@ -175,17 +201,19 @@ namespace OsnovnaSredstva
                         itemPrintNum = 0;
                     }
                 }
+                
                 foreach (string cname in columns)
                 {
                     PropertyInfo prop = ositemType.GetProperty(cname);
                     SizeF maxStringSize = new SizeF();
 
                     if (cname.Equals("#")) { maxStringSize = e.Graphics.MeasureString((itemsForList.items.Count).ToString().Length > OSUtil.columnNames[cname].Length ? (itemsForList.items.Count).ToString() : OSUtil.columnNames[cname], dgvPregled.Font); maxStringSize.Width += 2; }
-                    else maxStringSize = e.Graphics.MeasureString(itemsForList.fieldMaxLength[cname], dgvPregled.Font);
+                    else maxStringSize = e.Graphics.MeasureString(itemsForList.fieldMaxLength[cname], font);
 
                     //graphics.DrawString(Convert.ToString(dataGridView1.Rows[i].Cells[0].Value), new Font("Courier New", 10), new SolidBrush(Color.Black), startX, startY + Offset);
                     graphics.DrawRectangle(Pens.Black, offsetX, offsetY, maxStringSize.Width, dgvPregled.Rows[itemPrintNum].Height);
-                    //graphics.FillRectangle(Brushes.LightGray, new Rectangle(offsetX + 1, offsetY + 1,(int)maxStringSize.Width - 1, dgvPregled.Rows[i].Height));
+                    //graphics.FillRectangle(Brushes.White, new Rectangle(offsetX + 1, offsetY + 1,(int)maxStringSize.Width - 1, dgvPregled.Rows[i].Height));
+                    graphics.FillRectangle(Brushes.White, new Rectangle(offsetX + 1, offsetY + 1, (int)maxStringSize.Width - 1, dgvPregled.Rows[0].Height));
                     RectangleF rectf = new RectangleF((float)offsetX, ((float)(offsetY)), (float)maxStringSize.Width, (float)dgvPregled.Rows[itemPrintNum].Height);
                     StringFormat stringDrawFormat = new StringFormat();
                     stringDrawFormat.Alignment = StringAlignment.Center;
@@ -193,7 +221,7 @@ namespace OsnovnaSredstva
                     //Convert.ToString(dataGridView1.Rows[i].Cells[k].Value);
                     if (cname.Equals("#"))
                     {
-                        graphics.DrawString((itemPrintNum + 1) + "", dgvPregled.Font, Brushes.Black, rectf, stringDrawFormat);
+                        graphics.DrawString((itemPrintNum + 1) + "", font, Brushes.Black, rectf, stringDrawFormat);
                     }
                     else if (cname.StartsWith("datum"))
                     {
@@ -201,7 +229,7 @@ namespace OsnovnaSredstva
                     }
                     else
                     {
-                        graphics.DrawString(prop.GetValue(itemsForList.items[itemPrintNum]) + "", dgvPregled.Font, Brushes.Black, rectf, stringDrawFormat);
+                        graphics.DrawString(prop.GetValue(itemsForList.items[itemPrintNum]) + "", font, Brushes.Black, rectf, stringDrawFormat);
                     }
                     //graphics.DrawString()
 
@@ -209,9 +237,11 @@ namespace OsnovnaSredstva
                     //offsetX += dgvPregled.Columns[cname].GetPreferredWidth(DataGridViewAutoSizeColumnMode.AllCells,true);
                     offsetX += (int)maxStringSize.Width;
                 }
+                
                 offsetY += dgvPregled.Rows[itemPrintNum].Height;
-
+                itemPrintNum++;
             }
+            
         }
 
         private void btnPrint_Click(object sender, EventArgs e)
@@ -258,66 +288,80 @@ namespace OsnovnaSredstva
             DBManager.deleteOS((string)e.Row.Cells["id"].Value);
         }
 
-        private void btnSearch_Click(object sender, EventArgs e)
+
+
+
+
+
+
+        private void brnKreirajCSV_Click(object sender, EventArgs e)
         {
-            string itemfieldName = "";
-            string selectedItem = "";
+            //System.IO.StreamWriter file = new System.IO.StreamWriter(@"items.csv", false);
+            System.IO.StreamWriter file;
 
-            if (cbFieldName.SelectedIndex > 0)
+            //System.Web.HttpContext.Current.Response.Write("Some Text");
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Filter = "Comma separated values|*.csv";
+            saveFileDialog1.Title = "Save an CSV File";
+            saveFileDialog1.DefaultExt = "csv";
+            DialogResult? result = saveFileDialog1.ShowDialog();
+            if (result == DialogResult.OK)
             {
-                selectedItem = cbFieldName.Items[cbFieldName.SelectedIndex].ToString().Trim();
-                if (selectedItem.ToLower().StartsWith("datum"))
-                {
-                    if (cbCondition.SelectedIndex > 0)
-                    {
-                        DBManager.Condition cond = DBManager.Condition.contain;
-                        string conditionValue = cbCondition.Items[cbCondition.SelectedIndex].ToString();
-                        if (conditionValue.Equals("Manje")) cond = DBManager.Condition.lower;
-                        else if (conditionValue.Equals("Vece")) cond = DBManager.Condition.greater;
-                        else if (conditionValue.Equals("Jednako")) cond = DBManager.Condition.equal;
-                        else cond = DBManager.Condition.none;
-                        dictFields.TryGetValue(cbFieldName.SelectedIndex, out itemfieldName);
-                        string databaseFieldName = (cond == DBManager.Condition.none ? "": OSUtil.columnNamesToTableMapping[itemfieldName]);
-                        FillGridView(DBManager.GetAllWithFilter(databaseFieldName, cond, inputDatumZaPretragu.Value.ToString("yyyy-MM-dd HH:mm:ss")));
-                    }
-                    else
-                    {
-                        FillGridView(DBManager.GetAllWithFilter("", DBManager.Condition.none, inputSearchValue.Text.Trim()));
-                    }
-                }
-                else
+                System.IO.Stream dlgstream;
+                if ((dlgstream = saveFileDialog1.OpenFile()) != null)
                 {
 
-                    if (cbCondition.SelectedIndex > 0)
-                    {
-                        DBManager.Condition cond = DBManager.Condition.contain;
-                        string conditionValue = cbCondition.Items[cbCondition.SelectedIndex].ToString();
-                        if (conditionValue.Equals("Vanje")) cond = DBManager.Condition.lower;
-                        else if (conditionValue.Equals("Vece")) cond = DBManager.Condition.greater;
-                        else if (conditionValue.Equals("Sadrzi")) cond = DBManager.Condition.contain;
-                        else if (conditionValue.Equals("Jednako")) cond = DBManager.Condition.equal;
-                        else cond = DBManager.Condition.none;
-                        
-                        dictFields.TryGetValue(cbFieldName.SelectedIndex, out itemfieldName);
-                        string databaseFieldName = (cond == DBManager.Condition.none ? "" : OSUtil.columnNamesToTableMapping[itemfieldName]);
-                        FillGridView(DBManager.GetAllWithFilter(databaseFieldName, cond, inputSearchValue.Text.Trim()));
-                    }
-                    else
-                    {
-                        FillGridView(DBManager.GetAllWithFilter("", DBManager.Condition.none, inputSearchValue.Text.Trim()));
-                    }
+                    file = new System.IO.StreamWriter(dlgstream);
+
+                    //System.IO.StreamWriter file = new System.IO.StreamWriter(Response.OutputStream, Encoding.UTF8);
+
+                    //Console.WriteLine(OSUtil.ispravkaVrijednosti(double.Parse(inputNabavnaVrednost.Text), DateTime.ParseExact("2017-05-30", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture), double.Parse(inputStopaAmortizacije.Text)));
+                    List<OSItem> itemsForListCSV = itemsForList.items;
 
 
+
+                    Type myType = typeof(OSItem);
+                    IList<PropertyInfo> props = new List<PropertyInfo>(myType.GetProperties());
+                    Console.WriteLine(props.Count);
+                    //dgvPregled.ColumnCount = props.Count;
+                    for (int i = 0; i < props.Count; i++)
+                    {
+                        //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
+                        //object propValue = prop.GetValue(myObject, null);
+                        //dgvPregled.Columns[i].Name = props.ElementAt(i).Name;
+                        //file.Write( props.ElementAt(i).Name + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                        file.Write(OSUtil.columnNames[props.ElementAt(i).Name] + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                        // Do something with propValue
+                    }
+
+                    foreach (OSItem item in itemsForListCSV)
+                    {
+                        List<string> row = new List<string>();
+                        for (int i = 0; i < props.Count; i++)
+                        {
+                            if (props.ElementAt(i).Name.StartsWith("datum"))
+                            {
+                                //row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy."));
+                                file.Write(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy.") + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                            }
+                            else
+                            {
+                                //row.Add(props.ElementAt(i).GetValue(item, null).ToString());
+                                file.Write(props.ElementAt(i).GetValue(item, null).ToString() + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                            }
+                            //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
+                            //object propValue = prop.GetValue(myObject, null);
+
+                            // Do something with propValue
+                        }
+                        //dgvPregled.Rows.Add(row.ToArray());
+                    }
+                    file.Close();
                 }
             }
-            else
-            {
-                FillGridView(DBManager.GetAllWithFilter("", DBManager.Condition.none, inputSearchValue.Text.Trim()));
-            }
-
         }
 
-        private void cbFieldName_SelectedIndexChanged(object sender, EventArgs e)
+        private void cbFieldName_SelectedIndexChanged_1(object sender, EventArgs e)
         {
             if (cbFieldName.SelectedIndex > 0)
             {
@@ -365,5 +409,115 @@ namespace OsnovnaSredstva
                     cbCondition.SelectedIndex = 0;
             }
         }
+
+        private void btnDodajFilter_Click_1(object sender, EventArgs e)
+        {
+            DBManager.FieldConditionValue fcv = new DBManager.FieldConditionValue();
+            string itemfieldName = "";
+            string selectedItem = "";
+
+            if (cbFieldName.SelectedIndex > 0)
+            {
+                if (cbCondition.SelectedIndex > 0 && inputSearchValue.Text.Length > 0)
+                {
+                    selectedItem = cbFieldName.Items[cbFieldName.SelectedIndex].ToString().Trim();
+                    if (selectedItem.ToLower().StartsWith("datum"))
+                    {
+
+                        DBManager.Condition cond = DBManager.Condition.contain;
+                        string conditionValue = cbCondition.Items[cbCondition.SelectedIndex].ToString();
+                        if (conditionValue.Equals("Manje")) cond = DBManager.Condition.lower;
+                        else if (conditionValue.Equals("Vece")) cond = DBManager.Condition.greater;
+                        else if (conditionValue.Equals("Jednako")) cond = DBManager.Condition.equal;
+                        else cond = DBManager.Condition.none;
+
+                        dictFields.TryGetValue(cbFieldName.SelectedIndex, out itemfieldName);
+                        string databaseFieldName = (cond == DBManager.Condition.none ? "" : OSUtil.columnNamesToTableMapping[itemfieldName]);
+                        //FillGridView(DBManager.GetAllWithFilter(databaseFieldName, cond, inputDatumZaPretragu.Value.ToString("yyyy-MM-dd HH:mm:ss")));
+                        fcv.condition = cond;
+                        fcv.field = databaseFieldName;
+                        fcv.value = inputDatumZaPretragu.Value.ToString("yyyy-MM-dd");
+
+
+                    }
+                    else
+                    {
+
+
+                        DBManager.Condition cond = DBManager.Condition.contain;
+                        string conditionValue = cbCondition.Items[cbCondition.SelectedIndex].ToString();
+                        if (conditionValue.Equals("Vanje")) cond = DBManager.Condition.lower;
+                        else if (conditionValue.Equals("Vece")) cond = DBManager.Condition.greater;
+                        else if (conditionValue.Equals("Sadrzi")) cond = DBManager.Condition.contain;
+                        else if (conditionValue.Equals("Jednako")) cond = DBManager.Condition.equal;
+                        else cond = DBManager.Condition.none;
+
+                        dictFields.TryGetValue(cbFieldName.SelectedIndex, out itemfieldName);
+                        string databaseFieldName = (cond == DBManager.Condition.none ? "" : OSUtil.columnNamesToTableMapping[itemfieldName]);
+                        //FillGridView(DBManager.GetAllWithFilter(databaseFieldName, cond, inputSearchValue.Text.Trim()));
+                        fcv.condition = cond;
+                        fcv.field = databaseFieldName;
+                        fcv.value = inputSearchValue.Text.Trim();
+
+
+
+
+                    }
+
+                    cbActiveFilters.Enabled = true;
+
+                    cbActiveFilters.Items.Clear();
+                    fcvlist.Add(fcv);
+
+                    for (int i = 0; i < fcvlist.Count; i++)
+                    {
+                        string condName = "NN";
+                        if (fcv.condition == DBManager.Condition.contain)
+                        {
+                            condName = "Sadrži";
+                        }
+                        else if (fcv.condition == DBManager.Condition.lower)
+                        {
+                            condName = "Manje";
+                        }
+                        else if (fcv.condition == DBManager.Condition.greater)
+                        {
+                            condName = "Veće";
+                        }
+                        else if (fcv.condition == DBManager.Condition.equal)
+                        {
+                            condName = "Jednako";
+                        }
+                        cbActiveFilters.Items.Insert(i, fcvlist[i].field + " " + condName + " " + fcvlist[i].value);
+                    }
+                    cbActiveFilters.SelectedIndex = cbActiveFilters.Items.Count - 1;
+                    cbFieldName.SelectedIndex = 0;
+                    inputSearchValue.Text = "";
+                    fcvListId = Guid.NewGuid();
+                }
+            }
+        }
+
+        private void btnSearch_Click_1(object sender, EventArgs e)
+        {
+            if (fcvListId != lastSearchFcvListID)
+            {
+                if (fcvlist.Count > 0)
+                    FillGridView(DBManager.GetAllWithFilter(fcvlist, dtAmortizacije.Value));
+                else
+                    FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(dtAmortizacije.Value));
+
+                lastSearchFcvListID = fcvListId;
+            }
+        }
+
+        private void btnIzbrisiFiltere_Click_1(object sender, EventArgs e)
+        {
+            fcvlist.Clear();
+            cbActiveFilters.Items.Clear();
+            cbActiveFilters.Enabled = false;
+        }
+
+
     }
 }

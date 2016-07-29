@@ -10,7 +10,7 @@ using System.Globalization;
 namespace OsnovnaSredstva
 {
 
-    class DBManager
+    public class DBManager
     {
         private static string dbName = "osapdb.db3";
         private static SQLiteConnection cnn = null;
@@ -297,35 +297,48 @@ namespace OsnovnaSredstva
 
         public enum Condition { contain, greater, lower, equal, none }
 
-        public static ListWithFieldMaxLengths GetAllWithFilter(string fieldName, Condition condition, string value)
+        public static ListWithFieldMaxLengths GetAllWithFilter(List<FieldConditionValue> fcvlist, DateTime datumAmortizacije)
         {
             ListWithFieldMaxLengths lwf = new ListWithFieldMaxLengths();
-            string sql="";
+            string sql = "";
             List<OSItem> ret = new List<OSItem>();
-            if (condition == Condition.contain)
+            sql = "SELECT * FROM osnovna_sredstva where ";
+            bool first = true;
+            string and = "";
+            foreach (FieldConditionValue fcv in fcvlist)
             {
-                sql = "SELECT * FROM osnovna_sredstva where "+@fieldName+" like '%" + @value + "%' and active='active';";
-            }else if(condition == Condition.lower)
-            {
-                sql = "SELECT * FROM osnovna_sredstva where " + @fieldName + " < '" + @value + "' and active='active';";
-            }else if(condition == Condition.greater)
-            {
-                sql = "SELECT * FROM osnovna_sredstva where " + @fieldName + " > '" + @value + "' and active='active';";
+                if (fcv.condition == Condition.contain)
+                {
+                    sql += and + @fcv.field + " like '%" + @fcv.value + "%'";
+                }
+                else if (fcv.condition == Condition.lower)
+                {
+                    sql += and + @fcv.field + " < '" + @fcv.value + "'";
+                }
+                else if (fcv.condition == Condition.greater)
+                {
+                    sql += and + @fcv.field + " > '" + @fcv.value + "'";
+                }
+                else if (fcv.condition == Condition.equal)
+                {
+                    sql += and + @fcv.field + " = '" + @fcv.value + "'";
+                }
+                else
+                {
+                    
+                }
+                if (first)
+                {
+                    and = " and ";
+                    first = false;
+                }
             }
-            else if (condition == Condition.equal)
-            {
-                sql = "SELECT * FROM osnovna_sredstva where " + @fieldName + " = '" + @value + "' and active='active';";
-            }else
-            {
-                sql = "SELECT * FROM osnovna_sredstva where active='active'";
-            }
-
+            sql += " and active='active';";
             SQLiteCommand command = new SQLiteCommand(sql, cnn);
-            command.Parameters.AddWithValue("@fieldName", fieldName);
-            command.Parameters.AddWithValue("@value", value);
+            
             SQLiteDataReader reader;
             reader = command.ExecuteReader();
-            Console.WriteLine("SQl command filter: "+command.CommandText);
+            Console.WriteLine("SQl command filter: " + command.CommandText);
 
             while (reader.Read())
             {
@@ -365,10 +378,9 @@ namespace OsnovnaSredstva
                 if (!lwf.fieldMaxLength.ContainsKey("datumAmortizacije")) lwf.fieldMaxLength.Add("datumAmortizacije", "Datum Amortizacije");
                 if (lwf.fieldMaxLength["datumAmortizacije"].Length < item.datumAmortizacije.Length) lwf.fieldMaxLength["datumAmortizacije"] = item.datumAmortizacije;
 
-                item.ispravkaVrijednosti = double.Parse(reader["ispravka_vrijednosti"].ToString());
-                if (!lwf.fieldMaxLength.ContainsKey("ispravkaVrijednosti")) lwf.fieldMaxLength.Add("ispravkaVrijednosti", "Ispravka Vrijednosti");
-                if (lwf.fieldMaxLength["ispravkaVrijednosti"].Length < item.ispravkaVrijednosti.ToString().Length) lwf.fieldMaxLength["ispravkaVrijednosti"] = item.ispravkaVrijednosti.ToString();
-
+                item.ispravkaVrijednosti = Math.Round(OSUtil.ispravkaVrijednosti(item.nabavnaVrijednost, datumAmortizacije, DateTime.ParseExact(item.datumAmortizacije, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture), item.stopaAmortizacije), 2);
+                if (!lwf.fieldMaxLength.ContainsKey("ispravkaVrijednosti")) lwf.fieldMaxLength.Add("ispravkaVrijednosti", item.inventurniBroj);
+                else if (lwf.fieldMaxLength["ispravkaVrijednosti"].Length < item.inventurniBroj.Length) lwf.fieldMaxLength.Add("ispravkaVrijednosti", item.ispravkaVrijednosti.ToString());
                 item.vek = double.Parse(reader["vek"].ToString());
                 if (!lwf.fieldMaxLength.ContainsKey("vek")) lwf.fieldMaxLength.Add("vek", "vek");
                 if (lwf.fieldMaxLength["vek"].Length < item.vek.ToString().Length) lwf.fieldMaxLength["Vek"] = item.vek.ToString();
@@ -377,9 +389,9 @@ namespace OsnovnaSredstva
                 if (!lwf.fieldMaxLength.ContainsKey("datumOtpisa")) lwf.fieldMaxLength.Add("datumOtpisa", "Datum Otpisa");
                 if (lwf.fieldMaxLength["datumOtpisa"].Length < item.datumOtpisa.Length) lwf.fieldMaxLength["datumOtpisa"] = item.datumOtpisa;
 
-                item.sadasnjaVrijednost = double.Parse(reader["sadasnja_vrednost"].ToString());
-                if (!lwf.fieldMaxLength.ContainsKey("sadasnjaVrijednost")) lwf.fieldMaxLength.Add("sadasnjaVrijednost", "Sadasnja Vrijednost");
-                if (lwf.fieldMaxLength["sadasnjaVrijednost"].Length < item.sadasnjaVrijednost.ToString().Length) lwf.fieldMaxLength["sadasnjaVrijednost"] = item.sadasnjaVrijednost.ToString();
+                item.sadasnjaVrijednost = Math.Round(item.nabavnaVrijednost - item.ispravkaVrijednosti, 2);
+                if (!lwf.fieldMaxLength.ContainsKey("sadasnjaVrijednost")) lwf.fieldMaxLength.Add("sadasnjaVrijednost", item.inventurniBroj);
+                else if (lwf.fieldMaxLength["sadasnjaVrijednost"].Length < item.inventurniBroj.Length) lwf.fieldMaxLength.Add("sadasnjaVrijednost", item.sadasnjaVrijednost.ToString());
 
                 item.jedinicaMjere = reader["jedinica_mjere"].ToString();
                 if (!lwf.fieldMaxLength.ContainsKey("jednicaMjere")) lwf.fieldMaxLength.Add("jednicaMjere", "Jednica Mjere");
@@ -459,6 +471,13 @@ namespace OsnovnaSredstva
             return allItemsFromDB;
         }
 
-
+        public class FieldConditionValue
+        {
+            public string field { set; get; }
+            public DBManager.Condition condition { set; get; }
+            public string value { set; get; }
+        }
     }
+
+    
 }
