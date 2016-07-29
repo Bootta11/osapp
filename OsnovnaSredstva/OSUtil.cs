@@ -9,6 +9,8 @@ namespace OsnovnaSredstva
     static class OSUtil
     {
         public static Dictionary<string, string> columnNames;
+        public static Dictionary<string, string> columnNamesToTableMapping;
+        public static Dictionary<string, string> columnNamesToItemFieldMapping;
         public static void init()
         {
             columnNames = new Dictionary<string, string>()
@@ -21,12 +23,12 @@ namespace OsnovnaSredstva
             { "datumAmortizacije", "Datum amortizacije"},
             { "nabavnaVrijednost", "Nabavna vrijednost"},
             { "ispravkaVrijednosti", "Ispravka vrijednosti"},
-            { "sadasnjaVrijednost", "Sadasnja vrijednost"},
+            { "sadasnjaVrijednost", "Sadašnja vrijednost"},
             { "konto", "Konto"},
             {"vek", "Vek" },
             {"datumOtpisa", "Datum otpisa" },
             { "jedinicaMjere", "Jedinica mjere"},
-            {"dobavljac", "Dobavljac" },
+            {"dobavljac", "Dobavljač" },
             {"racunDobavljaca", "Račun dobavljača" },
             { "racunopolagac", "Računopolagač"},
             { "lokacija", "Lokacija"},
@@ -37,6 +39,35 @@ namespace OsnovnaSredstva
             { "amortizacionaGrupa", "Amortizaciona grupa"},
             { "stopaAmortizacije", "Stop amortizacije"},
             { "active", "Aktivan"},
+            { "#", "R.br."}
+        };
+            
+            columnNamesToTableMapping = new Dictionary<string, string>()
+        {
+            {"id", "id" },
+            {"inventurniBroj", "inventurni_broj" },
+            { "naziv", "naziv"},
+            {"kolicina", "kolicina" },
+            { "datumNabavke", "datum_nabavke"},
+            { "datumAmortizacije", "datum_amortizacije"},
+            { "nabavnaVrijednost", "nabavna_vrijednost"},
+            { "ispravkaVrijednosti", "ispravka_vrijednosti"},
+            { "sadasnjaVrijednost", "sadasnja_vrijednost"},
+            { "konto", "konto"},
+            {"vek", "vek" },
+            {"datumOtpisa", "datum_otpisa" },
+            { "jedinicaMjere", "jedinica_mjere"},
+            {"dobavljac", "dobavljac" },
+            {"racunDobavljaca", "racun_dok_dobavljaca" },
+            { "racunopolagac", "racunopolagac"},
+            { "lokacija", "lokacija"},
+            {"smjestaj", "smjestaj" },
+            { "metodaAmortizacije", "metoda_amortizacije"},
+            { "poreskeGrupe", "poreske_grupe"},
+            { "brojPoNabavci", "broj_po_nabavci"},
+            { "amortizacionaGrupa", "amortizaciona_grupa"},
+            { "stopaAmortizacije", "stop_amortizacije"},
+            { "active", "active"},
             { "#", "R.br."}
         };
         }

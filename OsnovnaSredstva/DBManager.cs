@@ -31,20 +31,22 @@ namespace OsnovnaSredstva
         public static string insertOS(OSItem item)
         {
             string ret = "";
-            try { 
-            CultureInfo provider = CultureInfo.InvariantCulture;
-            string sql = "insert into osnovna_sredstva (inventurni_broj, naziv , kolicina, datum_nabavke, nabavna_vrijednost, konto, datum_amortizacije, ispravka_vrijednosti, vek, datum_otpisa, sadasnja_vrednost, jedinica_mjere, dobavljac, racun_dok_dobavljaca, racunopolagac, lokacija, smjestaj, metoda_amortizacije, poreske_grupe, broj_po_nabavci, amortizaciona_grupa, stopa_amortizacije, active)" +
-                "  values ('" + item.inventurniBroj + "', '" + item.naziv + "' , '" + item.kolicina + "', @datum_nabavke, '" + item.nabavnaVrijednost + "', '" + item.konto + "', @datum_amortizacije, '" + item.ispravkaVrijednosti + "', '" + item.vek + "', @datum_otpisa, '" + item.sadasnjaVrijednost + "', '" + item.jedinicaMjere + "', '" + item.dobavljac + "', '" + item.racunDobavljaca + "', '" + item.racunDobavljaca + "', '" + item.lokacija + "', '" + item.smjestaj + "', '" + item.metodaAmortizacije + "', '" + item.poreskeGrupe + "', '" + item.brojPoNabavci + "', '" + item.amortizacionaGrupa + "', '" + item.stopaAmortizacije + "', '" + item.active + "')";
+            try
+            {
+                CultureInfo provider = CultureInfo.InvariantCulture;
+                string sql = "insert into osnovna_sredstva (inventurni_broj, naziv , kolicina, datum_nabavke, nabavna_vrijednost, konto, datum_amortizacije, ispravka_vrijednosti, vek, datum_otpisa, sadasnja_vrednost, jedinica_mjere, dobavljac, racun_dok_dobavljaca, racunopolagac, lokacija, smjestaj, metoda_amortizacije, poreske_grupe, broj_po_nabavci, amortizaciona_grupa, stopa_amortizacije, active)" +
+                    "  values ('" + item.inventurniBroj + "', '" + item.naziv + "' , '" + item.kolicina + "', @datum_nabavke, '" + item.nabavnaVrijednost + "', '" + item.konto + "', @datum_amortizacije, '" + item.ispravkaVrijednosti + "', '" + item.vek + "', @datum_otpisa, '" + item.sadasnjaVrijednost + "', '" + item.jedinicaMjere + "', '" + item.dobavljac + "', '" + item.racunDobavljaca + "', '" + item.racunDobavljaca + "', '" + item.lokacija + "', '" + item.smjestaj + "', '" + item.metodaAmortizacije + "', '" + item.poreskeGrupe + "', '" + item.brojPoNabavci + "', '" + item.amortizacionaGrupa + "', '" + item.stopaAmortizacije + "', '" + item.active + "')";
 
-            SQLiteCommand command = new SQLiteCommand(sql, cnn);
-            command.Parameters.AddWithValue("@datum_nabavke", DateTime.ParseExact(item.datumNabavke, "dd.MM.yyyy.", provider));
-            command.Parameters.AddWithValue("@datum_amortizacije", DateTime.ParseExact(item.datumAmortizacije, "dd.MM.yyyy.", provider));
-            command.Parameters.AddWithValue("@datum_otpisa", DateTime.ParseExact(item.datumOtpisa, "dd.MM.yyyy.", provider));
-            command.ExecuteNonQuery();
-            }catch(Exception ex)
+                SQLiteCommand command = new SQLiteCommand(sql, cnn);
+                command.Parameters.AddWithValue("@datum_nabavke", DateTime.ParseExact(item.datumNabavke, "dd.MM.yyyy.", provider));
+                command.Parameters.AddWithValue("@datum_amortizacije", DateTime.ParseExact(item.datumAmortizacije, "dd.MM.yyyy.", provider));
+                command.Parameters.AddWithValue("@datum_otpisa", DateTime.ParseExact(item.datumOtpisa, "dd.MM.yyyy.", provider));
+                command.ExecuteNonQuery();
+            }
+            catch (Exception ex)
             {
                 ret = ex.Message;
-                
+
             }
             return ret;
         }
@@ -69,7 +71,7 @@ namespace OsnovnaSredstva
             command.Parameters.AddWithValue("@id", id);
             SQLiteDataReader reader;
             reader = command.ExecuteReader();
-            
+
             if (reader.Read())
             {
                 OSItem item = new OSItem();
@@ -77,60 +79,60 @@ namespace OsnovnaSredstva
                 item.id = reader["id"].ToString();
 
                 item.inventurniBroj = reader["inventurni_broj"].ToString();
-                
+
 
                 item.naziv = reader["naziv"].ToString();
-                
+
 
                 item.kolicina = double.Parse(reader["kolicina"].ToString());
-                
+
 
                 //item.datumNabavke = reader["datum_nabavke"].ToString();
                 item.nabavnaVrijednost = double.Parse(reader["nabavna_vrijednost"].ToString());
-                
+
                 item.konto = reader["konto"].ToString();
-                
+
                 Console.WriteLine("D: " + reader.GetDateTime(4).ToString("dd.MM.yyyy."));
                 item.datumNabavke = reader.GetString(4).ToString();
-               
+
                 item.datumAmortizacije = reader.GetString(7).ToString();
-                
+
                 item.ispravkaVrijednosti = double.Parse(reader["ispravka_vrijednosti"].ToString());
-                
+
                 item.vek = double.Parse(reader["vek"].ToString());
-                
+
                 item.datumOtpisa = reader.GetString(10).ToString();
-                
+
                 item.sadasnjaVrijednost = double.Parse(reader["sadasnja_vrednost"].ToString());
-                
+
                 item.jedinicaMjere = reader["jedinica_mjere"].ToString();
-                
+
                 item.dobavljac = reader["dobavljac"].ToString();
-               
+
                 item.racunDobavljaca = reader["racun_dok_dobavljaca"].ToString();
-                
+
                 item.racunopolagac = reader["racunopolagac"].ToString();
-                
+
                 item.lokacija = reader["lokacija"].ToString();
-                
+
                 item.smjestaj = reader["smjestaj"].ToString();
-                
+
                 item.metodaAmortizacije = reader["metoda_amortizacije"].ToString();
-                
+
                 item.poreskeGrupe = reader["poreske_grupe"].ToString();
-                
+
                 item.brojPoNabavci = int.Parse(reader["broj_po_nabavci"].ToString());
-                
+
                 item.amortizacionaGrupa = reader["amortizaciona_grupa"].ToString();
-                
+
                 item.stopaAmortizacije = double.Parse(reader["stopa_amortizacije"].ToString());
-                
+
                 item.active = reader["active"].ToString();
-                
+
                 Console.WriteLine(item.nabavnaVrijednost);
 
-               
-                ret=item;
+
+                ret = item;
             }
 
             return ret;
@@ -143,8 +145,8 @@ namespace OsnovnaSredstva
                 "where id=@id;";
 
             SQLiteCommand command = new SQLiteCommand(sql, cnn);
-            command.Parameters.AddWithValue("@inventurni_broj", item.naziv);
-            command.Parameters.AddWithValue("@naziv",item.naziv);
+            command.Parameters.AddWithValue("@inventurni_broj", item.inventurniBroj);
+            command.Parameters.AddWithValue("@naziv", item.naziv);
             command.Parameters.AddWithValue("@kolicina", item.kolicina);
             command.Parameters.AddWithValue("@datum_nabavke", item.datumNabavke);
             command.Parameters.AddWithValue("@nabavna_vrijednost", item.nabavnaVrijednost);
@@ -174,9 +176,9 @@ namespace OsnovnaSredstva
         public static ListWithFieldMaxLengths GetAll()
         {
             ListWithFieldMaxLengths lwf = new ListWithFieldMaxLengths();
-            
+
             List<OSItem> ret = new List<OSItem>();
-            string sql = "SELECT * FROM osnovna_sredstva";
+            string sql = "SELECT * FROM osnovna_sredstva  where active='active'";
 
             SQLiteCommand command = new SQLiteCommand(sql, cnn);
             SQLiteDataReader reader;
@@ -293,6 +295,149 @@ namespace OsnovnaSredstva
             return lwf;
         }
 
+        public enum Condition { contain, greater, lower, equal, none }
+
+        public static ListWithFieldMaxLengths GetAllWithFilter(string fieldName, Condition condition, string value)
+        {
+            ListWithFieldMaxLengths lwf = new ListWithFieldMaxLengths();
+            string sql="";
+            List<OSItem> ret = new List<OSItem>();
+            if (condition == Condition.contain)
+            {
+                sql = "SELECT * FROM osnovna_sredstva where "+@fieldName+" like '%" + @value + "%' and active='active';";
+            }else if(condition == Condition.lower)
+            {
+                sql = "SELECT * FROM osnovna_sredstva where " + @fieldName + " < '" + @value + "' and active='active';";
+            }else if(condition == Condition.greater)
+            {
+                sql = "SELECT * FROM osnovna_sredstva where " + @fieldName + " > '" + @value + "' and active='active';";
+            }
+            else if (condition == Condition.equal)
+            {
+                sql = "SELECT * FROM osnovna_sredstva where " + @fieldName + " = '" + @value + "' and active='active';";
+            }else
+            {
+                sql = "SELECT * FROM osnovna_sredstva where active='active'";
+            }
+
+            SQLiteCommand command = new SQLiteCommand(sql, cnn);
+            command.Parameters.AddWithValue("@fieldName", fieldName);
+            command.Parameters.AddWithValue("@value", value);
+            SQLiteDataReader reader;
+            reader = command.ExecuteReader();
+            Console.WriteLine("SQl command filter: "+command.CommandText);
+
+            while (reader.Read())
+            {
+                OSItem item = new OSItem();
+                //numRows = Convert.ToInt32(reader["cnt"]);
+                item.id = reader["id"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("id")) lwf.fieldMaxLength.Add("id", "ID");
+                if (lwf.fieldMaxLength["id"].Length < item.id.Length) lwf.fieldMaxLength["id"] = item.id;
+
+                item.inventurniBroj = reader["inventurni_broj"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("inventurniBroj")) lwf.fieldMaxLength.Add("inventurniBroj", "Inventurni Broj");
+                if (lwf.fieldMaxLength["inventurniBroj"].Length < item.inventurniBroj.Length) lwf.fieldMaxLength["inventurniBroj"] = item.inventurniBroj;
+
+                item.naziv = reader["naziv"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("naziv")) lwf.fieldMaxLength.Add("naziv", "naziv");
+                if (lwf.fieldMaxLength["naziv"].Length < item.naziv.Length) lwf.fieldMaxLength["naziv"] = item.naziv;
+
+                item.kolicina = double.Parse(reader["kolicina"].ToString());
+                if (!lwf.fieldMaxLength.ContainsKey("kolicina")) lwf.fieldMaxLength.Add("kolicina", "kolicina");
+                if (lwf.fieldMaxLength["kolicina"].Length < item.kolicina.ToString().Length) lwf.fieldMaxLength["kolicina"] = item.kolicina.ToString();
+
+                //item.datumNabavke = reader["datum_nabavke"].ToString();
+                item.nabavnaVrijednost = double.Parse(reader["nabavna_vrijednost"].ToString());
+                if (!lwf.fieldMaxLength.ContainsKey("nabavnaVrijednost")) lwf.fieldMaxLength.Add("nabavnaVrijednost", "Nabavna Vrijednost");
+                if (lwf.fieldMaxLength["nabavnaVrijednost"].Length < item.nabavnaVrijednost.ToString().Length) lwf.fieldMaxLength["nabavnaVrijednost"] = item.nabavnaVrijednost.ToString();
+
+                item.konto = reader["konto"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("konto")) lwf.fieldMaxLength.Add("konto", "konto");
+                if (lwf.fieldMaxLength["konto"].Length < item.konto.Length) lwf.fieldMaxLength["konto"] = item.konto;
+
+                Console.WriteLine("D: " + reader.GetDateTime(4).ToString("dd.MM.yyyy."));
+                item.datumNabavke = reader.GetString(4).ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("datumNabavke")) lwf.fieldMaxLength.Add("datumNabavke", "Datum Nabavke");
+                if (lwf.fieldMaxLength["datumNabavke"].Length < item.datumNabavke.Length) lwf.fieldMaxLength["datumNabavke"] = item.datumNabavke;
+
+                item.datumAmortizacije = reader.GetString(7).ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("datumAmortizacije")) lwf.fieldMaxLength.Add("datumAmortizacije", "Datum Amortizacije");
+                if (lwf.fieldMaxLength["datumAmortizacije"].Length < item.datumAmortizacije.Length) lwf.fieldMaxLength["datumAmortizacije"] = item.datumAmortizacije;
+
+                item.ispravkaVrijednosti = double.Parse(reader["ispravka_vrijednosti"].ToString());
+                if (!lwf.fieldMaxLength.ContainsKey("ispravkaVrijednosti")) lwf.fieldMaxLength.Add("ispravkaVrijednosti", "Ispravka Vrijednosti");
+                if (lwf.fieldMaxLength["ispravkaVrijednosti"].Length < item.ispravkaVrijednosti.ToString().Length) lwf.fieldMaxLength["ispravkaVrijednosti"] = item.ispravkaVrijednosti.ToString();
+
+                item.vek = double.Parse(reader["vek"].ToString());
+                if (!lwf.fieldMaxLength.ContainsKey("vek")) lwf.fieldMaxLength.Add("vek", "vek");
+                if (lwf.fieldMaxLength["vek"].Length < item.vek.ToString().Length) lwf.fieldMaxLength["Vek"] = item.vek.ToString();
+
+                item.datumOtpisa = reader.GetString(10).ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("datumOtpisa")) lwf.fieldMaxLength.Add("datumOtpisa", "Datum Otpisa");
+                if (lwf.fieldMaxLength["datumOtpisa"].Length < item.datumOtpisa.Length) lwf.fieldMaxLength["datumOtpisa"] = item.datumOtpisa;
+
+                item.sadasnjaVrijednost = double.Parse(reader["sadasnja_vrednost"].ToString());
+                if (!lwf.fieldMaxLength.ContainsKey("sadasnjaVrijednost")) lwf.fieldMaxLength.Add("sadasnjaVrijednost", "Sadasnja Vrijednost");
+                if (lwf.fieldMaxLength["sadasnjaVrijednost"].Length < item.sadasnjaVrijednost.ToString().Length) lwf.fieldMaxLength["sadasnjaVrijednost"] = item.sadasnjaVrijednost.ToString();
+
+                item.jedinicaMjere = reader["jedinica_mjere"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("jednicaMjere")) lwf.fieldMaxLength.Add("jednicaMjere", "Jednica Mjere");
+                if (lwf.fieldMaxLength["jednicaMjere"].Length < item.jedinicaMjere.Length) lwf.fieldMaxLength["jednicaMjere"] = item.jedinicaMjere;
+
+                item.dobavljac = reader["dobavljac"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("dobavljac")) lwf.fieldMaxLength.Add("dobavljac", "Dobavljac");
+                if (lwf.fieldMaxLength["dobavljac"].Length < item.dobavljac.Length) lwf.fieldMaxLength["dobavljac"] = item.dobavljac;
+
+                item.racunDobavljaca = reader["racun_dok_dobavljaca"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("racunDobavljaca")) lwf.fieldMaxLength.Add("racunDobavljaca", "Racun Dobavljaca");
+                if (lwf.fieldMaxLength["racunDobavljaca"].Length < item.racunDobavljaca.Length) lwf.fieldMaxLength["racunDobavljaca"] = item.racunDobavljaca;
+
+                item.racunopolagac = reader["racunopolagac"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("racunoPolagac")) lwf.fieldMaxLength.Add("racunoPolagac", "Racuno Polagac");
+                if (lwf.fieldMaxLength["racunoPolagac"].Length < item.racunopolagac.Length) lwf.fieldMaxLength["racunoPolagac"] = item.racunopolagac;
+
+                item.lokacija = reader["lokacija"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("lokacija")) lwf.fieldMaxLength.Add("lokacija", "Lokacija");
+                if (lwf.fieldMaxLength["lokacija"].Length < item.lokacija.Length) lwf.fieldMaxLength["lokacija"] = item.lokacija;
+
+                item.smjestaj = reader["smjestaj"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("smjestaj")) lwf.fieldMaxLength.Add("smjestaj", "Smjestaj");
+                if (lwf.fieldMaxLength["smjestaj"].Length < item.smjestaj.Length) lwf.fieldMaxLength["smjestaj"] = item.smjestaj;
+
+                item.metodaAmortizacije = reader["metoda_amortizacije"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("metodaAmortizacije")) lwf.fieldMaxLength.Add("metodaAmortizacije", "Metoda Amortizacije");
+                if (lwf.fieldMaxLength["metodaAmortizacije"].Length < item.metodaAmortizacije.Length) lwf.fieldMaxLength["metodaAmortizacije"] = item.metodaAmortizacije;
+
+                item.poreskeGrupe = reader["poreske_grupe"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("poreskeGrupe")) lwf.fieldMaxLength.Add("poreskeGrupe", "Poreske Grupe");
+                if (lwf.fieldMaxLength["poreskeGrupe"].Length < item.poreskeGrupe.Length) lwf.fieldMaxLength["poreskeGrupe"] = item.poreskeGrupe;
+
+                item.brojPoNabavci = int.Parse(reader["broj_po_nabavci"].ToString());
+                if (!lwf.fieldMaxLength.ContainsKey("brojPoNabavci")) lwf.fieldMaxLength.Add("brojPoNabavci", "Broj Po Nabavci");
+                if (lwf.fieldMaxLength["brojPoNabavci"].Length < item.brojPoNabavci.ToString().Length) lwf.fieldMaxLength["brojPoNabavci"] = item.brojPoNabavci.ToString();
+
+                item.amortizacionaGrupa = reader["amortizaciona_grupa"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("amortizacionaGrupa")) lwf.fieldMaxLength.Add("amortizacionaGrupa", "Amortizaciona Grupa");
+                if (lwf.fieldMaxLength["amortizacionaGrupa"].Length < item.amortizacionaGrupa.Length) lwf.fieldMaxLength["amortizacionaGrupa"] = item.amortizacionaGrupa.ToString();
+
+                item.stopaAmortizacije = double.Parse(reader["stopa_amortizacije"].ToString());
+                if (!lwf.fieldMaxLength.ContainsKey("stopaAmortizacije")) lwf.fieldMaxLength.Add("stopaAmortizacije", "Stopa Amortizacije");
+                if (lwf.fieldMaxLength["stopaAmortizacije"].Length < item.stopaAmortizacije.ToString().Length) lwf.fieldMaxLength["stopa_amortizacije"] = item.stopaAmortizacije.ToString();
+
+                item.active = reader["active"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("active")) lwf.fieldMaxLength.Add("active", "Active");
+                if (lwf.fieldMaxLength["active"].Length < item.active.Length) lwf.fieldMaxLength["active"] = item.active;
+
+                Console.WriteLine(item.nabavnaVrijednost);
+
+                lwf.items.Add(item);
+                ret.Add(item);
+            }
+            Console.WriteLine("Count filter: " + lwf.items.Count);
+            return lwf;
+        }
+
         public static ListWithFieldMaxLengths GetAllSaIspravkaVrijednostiISadasnjaVrijednost(DateTime pickedDate)
         {
             ListWithFieldMaxLengths ret = new ListWithFieldMaxLengths();
@@ -307,13 +452,13 @@ namespace OsnovnaSredstva
                 if (!allItemsFromDB.fieldMaxLength.ContainsKey("sadasnjaVrijednost")) allItemsFromDB.fieldMaxLength.Add("sadasnjaVrijednost", item.inventurniBroj);
                 else if (allItemsFromDB.fieldMaxLength["sadasnjaVrijednost"].Length < item.inventurniBroj.Length) allItemsFromDB.fieldMaxLength.Add("sadasnjaVrijednost", item.sadasnjaVrijednost.ToString());
 
-                Console.WriteLine("Nabavna: " + item.nabavnaVrijednost+" ispracka: "+item.ispravkaVrijednosti+ " sadasnja: "+item.sadasnjaVrijednost);
+                Console.WriteLine("Nabavna: " + item.nabavnaVrijednost + " ispracka: " + item.ispravkaVrijednosti + " sadasnja: " + item.sadasnjaVrijednost);
                 ret.items.Add(item);
             }
-            
+
             return allItemsFromDB;
         }
 
-        
+
     }
 }
