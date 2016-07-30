@@ -98,7 +98,8 @@ namespace OsnovnaSredstva
         //define rw as globly variable in form
         public void zpt()
         {
-            try {
+            try
+            {
                 PrintDialog pd = new PrintDialog();
                 PrintDocument pdoc = new PrintDocument();
 
@@ -131,7 +132,8 @@ namespace OsnovnaSredstva
 
                     }
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.StackTrace);
             }
@@ -159,22 +161,51 @@ namespace OsnovnaSredstva
 
             SizeF maxStringSize2 = new SizeF();
             maxStringSize2 = e.Graphics.MeasureString("Bootta11", font);
+
+            Dictionary<string, int> lengthsList = new Dictionary<string, int>()
+            {
+                {"#", 41 },
+                {"inventurniBroj", 114 },
+                {"brojPoNabavci", 73 },
+                {"naziv", 120 },
+                {"kolicina", 65 },
+                {"datumNabavke", 93 },
+                {"datumAmortizacije", 135 },
+                {"nabavnaVrijednost", 128 },
+                {"ispravkaVrijednosti", 142 },
+                {"sadasnjaVrijednost", 135 },
+                {"konto", 60 },
+            };
+            int rowHeightCorrectionFactor = 14;
+
+            foreach (string cname in columns)
+            {
+                SizeF maxStringSize = new SizeF();
+
+                if (cname.Equals("#")) { maxStringSize = e.Graphics.MeasureString((itemsForList.items.Count).ToString().Length > OSUtil.columnNames[cname].Length ? (itemsForList.items.Count).ToString() : OSUtil.columnNames[cname], font); maxStringSize.Width += 2; }
+                else maxStringSize = e.Graphics.MeasureString(itemsForList.fieldMaxLength[cname], font);
+
+                Console.WriteLine("{\" " + cname + "\", " + maxStringSize.Width + " },");
+
+
+            }
+
             foreach (string cname in columns)
             {
                 SizeF maxStringSize = new SizeF();
                 if (cname.Equals("#")) { maxStringSize = e.Graphics.MeasureString((itemsForList.items.Count).ToString().Length > OSUtil.columnNames[cname].Length ? (itemsForList.items.Count).ToString() : OSUtil.columnNames[cname], font); maxStringSize.Width += 2; }
                 else maxStringSize = e.Graphics.MeasureString(itemsForList.fieldMaxLength[cname], font);
 
-                graphics.DrawRectangle(Pens.Black, offsetX, offsetY, maxStringSize.Width, dgvPregled.Rows[0].Height);
-                graphics.FillRectangle(Brushes.LightGray, new Rectangle(offsetX + 1, offsetY + 1, (int)maxStringSize.Width - 1, dgvPregled.Rows[0].Height));
-                RectangleF rectf = new RectangleF((float)offsetX, ((float)(offsetY)), (float)maxStringSize.Width, (float)dgvPregled.Rows[0].Height);
+                graphics.DrawRectangle(Pens.Black, offsetX, offsetY, lengthsList[cname], dgvPregled.Rows[0].Height);
+                graphics.FillRectangle(Brushes.LightGray, new Rectangle(offsetX + 1, offsetY + 1, (int)lengthsList[cname] - 1, dgvPregled.Rows[0].Height));
+                RectangleF rectf = new RectangleF((float)offsetX, ((float)(offsetY)), (float)lengthsList[cname], (float)dgvPregled.Rows[0].Height);
                 StringFormat stringDrawFormat = new StringFormat();
                 stringDrawFormat.Alignment = StringAlignment.Center;
                 stringDrawFormat.LineAlignment = StringAlignment.Center;
 
                 graphics.DrawString(OSUtil.columnNames[cname], font, Brushes.Black, rectf, stringDrawFormat);
 
-                offsetX += (int)maxStringSize.Width;
+                offsetX += (int)lengthsList[cname];
             }
 
             StringFormat stringDrawFormat2 = new StringFormat();
@@ -187,10 +218,10 @@ namespace OsnovnaSredstva
             int c = dgvPregled.Columns.Count;
             Type ositemType = typeof(OSItem);
             int rb = 1;
-            
+
             while (itemPrintNum < a)
             {
-
+                rowHeightCorrectionFactor = 14;
                 offsetX = startX;
                 if ((offsetY) > (e.PageBounds.Height - startY - 10) && (notPrintPreviewed || notPrinted))
                 {
@@ -207,6 +238,23 @@ namespace OsnovnaSredstva
                     }
                 }
 
+                //Calculate row height correction factor
+                foreach (string cname in columns)
+                {
+                    SizeF maxStringSize = new SizeF();
+                    PropertyInfo prop = ositemType.GetProperty(cname);
+
+
+                    if (cname.Equals("#")) { maxStringSize = e.Graphics.MeasureString((itemsForList.items.Count).ToString().Length > OSUtil.columnNames[cname].Length ? (itemsForList.items.Count).ToString() : OSUtil.columnNames[cname], font); maxStringSize.Width += 2; }
+                    else if (cname.StartsWith("datum")) maxStringSize = e.Graphics.MeasureString(DateTime.ParseExact(prop.GetValue(itemsForList.items[itemPrintNum]).ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture).ToString("dd.MM.yyyy") + "", font);
+                    else maxStringSize = e.Graphics.MeasureString(prop.GetValue(itemsForList.items[itemPrintNum]).ToString(), font);
+
+                    if ((maxStringSize.Width - lengthsList[cname]) > 2)
+                    {
+                        rowHeightCorrectionFactor = (int)(rowHeightCorrectionFactor + ((int)(maxStringSize.Width / lengthsList[cname])) * rowHeightCorrectionFactor);
+                    }
+                }
+
                 foreach (string cname in columns)
                 {
                     PropertyInfo prop = ositemType.GetProperty(cname);
@@ -216,11 +264,11 @@ namespace OsnovnaSredstva
                     else maxStringSize = e.Graphics.MeasureString(itemsForList.fieldMaxLength[cname], font);
 
                     //graphics.DrawString(Convert.ToString(dataGridView1.Rows[i].Cells[0].Value), new Font("Courier New", 10), new SolidBrush(Color.Black), startX, startY + Offset);
-                    graphics.DrawRectangle(Pens.Black, offsetX, offsetY, maxStringSize.Width, dgvPregled.Rows[itemPrintNum].Height);
+                    graphics.DrawRectangle(Pens.Black, offsetX, offsetY, lengthsList[cname], rowHeightCorrectionFactor);
                     //graphics.FillRectangle(Brushes.White, new Rectangle(offsetX + 1, offsetY + 1,(int)maxStringSize.Width - 1, dgvPregled.Rows[i].Height));
-                    
-                        graphics.FillRectangle(Brushes.White, new Rectangle(offsetX + 1, offsetY + 1, (int)maxStringSize.Width - 1, dgvPregled.Rows[0].Height-2));
-                    RectangleF rectf = new RectangleF((float)offsetX, ((float)(offsetY)), (float)maxStringSize.Width, (float)dgvPregled.Rows[itemPrintNum].Height);
+
+                    graphics.FillRectangle(Brushes.White, new Rectangle(offsetX + 1, offsetY + 1, (int)lengthsList[cname] - 1, rowHeightCorrectionFactor - 2));
+                    RectangleF rectf = new RectangleF((float)offsetX, ((float)(offsetY)), (float)lengthsList[cname], (float)rowHeightCorrectionFactor);
                     StringFormat stringDrawFormat = new StringFormat();
                     stringDrawFormat.Alignment = StringAlignment.Center;
                     stringDrawFormat.LineAlignment = StringAlignment.Center;
@@ -241,10 +289,10 @@ namespace OsnovnaSredstva
 
                     //graphics.DrawString("\t" + Convert.ToString(dataGridView1.Rows[i].Cells[1].Value), new Font("Courier New", 10), new SolidBrush(Color.Black), startX, startY + Offset);
                     //offsetX += dgvPregled.Columns[cname].GetPreferredWidth(DataGridViewAutoSizeColumnMode.AllCells,true);
-                    offsetX += (int)maxStringSize.Width;
+                    offsetX += (int)lengthsList[cname];
                 }
 
-                offsetY += dgvPregled.Rows[itemPrintNum].Height;
+                offsetY += rowHeightCorrectionFactor;
                 itemPrintNum++;
             }
             if (itemPrintNum >= a)
@@ -296,7 +344,13 @@ namespace OsnovnaSredstva
                 }
             }
             if (update)
+            {
                 DBManager.UpdateItem(item);
+                if (fcvlist.Count > 0)
+                    FillGridView(DBManager.GetAllWithFilter(fcvlist, dtAmortizacije.Value));
+                else
+                    FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(dtAmortizacije.Value));
+            }
         }
 
         private void dgvPregled_UserDeletingRow(object sender, DataGridViewRowCancelEventArgs e)
@@ -305,6 +359,11 @@ namespace OsnovnaSredstva
             Console.WriteLine(e.Row.Cells["id"].Value);
 
             DBManager.deleteOS((string)e.Row.Cells["id"].Value);
+
+            if (fcvlist.Count > 0)
+                FillGridView(DBManager.GetAllWithFilter(fcvlist, dtAmortizacije.Value));
+            else
+                FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(dtAmortizacije.Value));
         }
 
 
@@ -332,7 +391,7 @@ namespace OsnovnaSredstva
                 System.IO.Stream dlgstream;
                 if ((dlgstream = saveFileDialog1.OpenFile()) != null)
                 {
-                    
+
                     file = new System.IO.StreamWriter(dlgstream);
 
                     //System.IO.StreamWriter file = new System.IO.StreamWriter(Response.OutputStream, Encoding.UTF8);
@@ -440,7 +499,7 @@ namespace OsnovnaSredstva
 
             if (cbFieldName.SelectedIndex > 0)
             {
-                if (cbCondition.SelectedIndex > 0 )
+                if (cbCondition.SelectedIndex > 0)
                 {
                     selectedItem = cbFieldName.Items[cbFieldName.SelectedIndex].ToString().Trim();
                     if (selectedItem.ToLower().StartsWith("datum"))
@@ -523,6 +582,93 @@ namespace OsnovnaSredstva
         private void dtAmortizacije_ValueChanged(object sender, EventArgs e)
         {
             fcvListId = Guid.NewGuid();
+        }
+
+        private void btnXLS_Click(object sender, EventArgs e)
+        {
+            //System.IO.StreamWriter file = new System.IO.StreamWriter(@"items.csv", false);
+            System.IO.StreamWriter file;
+            HSSFWorkbook wb;
+            HSSFSheet sh;
+
+            //System.Web.HttpContext.Current.Response.Write("Some Text");
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Filter = "Exel file|*.xls";
+            saveFileDialog1.Title = "Save an Excel File";
+            saveFileDialog1.DefaultExt = "csv";
+            DialogResult? result = saveFileDialog1.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                //Console.WriteLine(saveFileDialog1.);
+                System.IO.Stream dlgstream;
+
+
+                if ((dlgstream = saveFileDialog1.OpenFile()) != null)
+                {
+
+                    if (saveFileDialog1.FilterIndex == 2)
+                    {
+                        int rowcount = 0;
+                        wb = HSSFWorkbook.Create(InternalWorkbook.CreateWorkbook());
+                        sh = (HSSFSheet)wb.CreateSheet("Lista amortizacije za datum " + dtAmortizacije.Value.ToString("dd.MM.yyyy"));
+                        //file = new System.IO.StreamWriter(dlgstream);
+
+                        //System.IO.StreamWriter file = new System.IO.StreamWriter(Response.OutputStream, Encoding.UTF8);
+
+                        //Console.WriteLine(OSUtil.ispravkaVrijednosti(double.Parse(inputNabavnaVrednost.Text), DateTime.ParseExact("2017-05-30", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture), double.Parse(inputStopaAmortizacije.Text)));
+                        List<OSItem> itemsForListCSV = itemsForList.items;
+
+
+
+                        Type myType = typeof(OSItem);
+                        IList<PropertyInfo> props = new List<PropertyInfo>(myType.GetProperties());
+                        Console.WriteLine(props.Count);
+                        //dgvPregled.ColumnCount = props.Count;
+                        NPOI.SS.UserModel.IRow row = sh.CreateRow(rowcount);
+                        for (int i = 0; i < props.Count; i++)
+                        {
+
+                            //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
+                            //object propValue = prop.GetValue(myObject, null);
+                            //dgvPregled.Columns[i].Name = props.ElementAt(i).Name;
+                            //file.Write( props.ElementAt(i).Name + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                            //file.Write(OSUtil.columnNames[props.ElementAt(i).Name] + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                            // Do something with propValue
+                            var cell = row.CreateCell(i);
+                            cell.SetCellValue(OSUtil.columnNames[props.ElementAt(i).Name]);
+                        }
+                        rowcount++;
+                        foreach (OSItem item in itemsForListCSV)
+                        {
+                            row = sh.CreateRow(rowcount);
+                            for (int i = 0; i < props.Count; i++)
+                            {
+                                var cell = row.CreateCell(i);
+                                if (props.ElementAt(i).Name.StartsWith("datum"))
+                                {
+                                    //row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy."));
+                                    //file.Write(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy.") + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                                    cell.SetCellValue(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy."));
+                                }
+                                else
+                                {
+                                    //row.Add(props.ElementAt(i).GetValue(item, null).ToString());
+                                    //file.Write(props.ElementAt(i).GetValue(item, null).ToString() + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                                    cell.SetCellValue(props.ElementAt(i).GetValue(item, null).ToString());
+                                }
+                                //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
+                                //object propValue = prop.GetValue(myObject, null);
+
+                                // Do something with propValue
+                            }
+                            //dgvPregled.Rows.Add(row.ToArray());
+                            rowcount++;
+                        }
+                        wb.Write(dlgstream);
+                        dlgstream.Close();
+                    }
+                }
+            }
         }
 
         private void btnSearch_Click_1(object sender, EventArgs e)

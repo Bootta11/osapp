@@ -44,6 +44,8 @@
             this.brnKreirajCSV = new System.Windows.Forms.Button();
             this.btnPrint = new System.Windows.Forms.Button();
             this.dgvPregled = new System.Windows.Forms.DataGridView();
+            this.btnXLS = new System.Windows.Forms.Button();
+            this.btnPrintTest = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -64,6 +66,8 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.btnPrintTest);
+            this.splitContainer1.Panel1.Controls.Add(this.btnXLS);
             this.splitContainer1.Panel1.Controls.Add(this.groupBox1);
             this.splitContainer1.Panel1.Controls.Add(this.dtAmortizacije);
             this.splitContainer1.Panel1.Controls.Add(this.label2);
@@ -235,6 +239,25 @@
             this.dgvPregled.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPregled_CellValueChanged);
             this.dgvPregled.UserDeletingRow += new System.Windows.Forms.DataGridViewRowCancelEventHandler(this.dgvPregled_UserDeletingRow);
             // 
+            // btnXLS
+            // 
+            this.btnXLS.Location = new System.Drawing.Point(371, 4);
+            this.btnXLS.Name = "btnXLS";
+            this.btnXLS.Size = new System.Drawing.Size(75, 23);
+            this.btnXLS.TabIndex = 14;
+            this.btnXLS.Text = "Kreiraj Excel";
+            this.btnXLS.UseVisualStyleBackColor = true;
+            this.btnXLS.Click += new System.EventHandler(this.btnXLS_Click);
+            // 
+            // btnPrintTest
+            // 
+            this.btnPrintTest.Location = new System.Drawing.Point(452, 3);
+            this.btnPrintTest.Name = "btnPrintTest";
+            this.btnPrintTest.Size = new System.Drawing.Size(75, 23);
+            this.btnPrintTest.TabIndex = 15;
+            this.btnPrintTest.Text = "PrintTest";
+            this.btnPrintTest.UseVisualStyleBackColor = true;
+            // 
             // PregledForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -273,5 +296,7 @@
         private System.Windows.Forms.TextBox inputSearchValue;
         private System.Windows.Forms.ComboBox cbCondition;
         private System.Windows.Forms.ComboBox cbFieldName;
+        private System.Windows.Forms.Button btnXLS;
+        private System.Windows.Forms.Button btnPrintTest;
     }
 }
