@@ -13,13 +13,14 @@ using System.Threading;
 using System.Configuration;
 using System.Drawing.Printing;
 using System.Reflection;
-using System.Web;
-using System.Net;
+using System.Windows.Input;
 
 namespace OsnovnaSredstva
 {
     public partial class Form1 : Form
     {
+        static Form staticForm ;
+        static Label lblMessageHolderForTimer = null;
         public Form1()
         {
             InitializeComponent();
@@ -45,7 +46,7 @@ namespace OsnovnaSredstva
             inputVek.LostFocus += textbox_OnlyNumbersAndDecimal;
             inputBrojPoNabavci.LostFocus += textbox_OnlyNumbers;
             //Controls.SetChildIndex(pictureBox1, 0);
-
+            staticForm = this;
         }
 
         public bool checkFieldsOK()
@@ -61,12 +62,12 @@ namespace OsnovnaSredstva
             OSItem item = new OSItem();
             item.inventurniBroj = inputInventurniBroj.Text;
             item.naziv = inputNaziv.Text;
-            
+
             parseOK = double.TryParse(inputKolicina.Text, out temp);
             item.kolicina = temp;
             temp = 0;
             item.datumNabavke = inputDatumNabavke.Text;
-            
+
             parseOK = double.TryParse(inputNabavnaVrednost.Text, out temp);
             item.nabavnaVrijednost = temp;
             temp = 0;
@@ -97,10 +98,13 @@ namespace OsnovnaSredstva
 
             string msg = "";
             if (parseOK)
+            {
                 msg = DBManager.insertOS(item);
+
+            }
             else
             {
-                showErrorMessage( "Nisu unijeti validni podaci");
+                showErrorMessage("Nisu unijeti validni podaci");
                 return;
             }
 
@@ -110,7 +114,10 @@ namespace OsnovnaSredstva
             }
             else
             {
-                hideMessage();
+                
+
+                clearInput(tblInput);
+                showSuccessMessage("OS uspjesno sačuvano u bazu");
             }
 
         }
@@ -122,7 +129,7 @@ namespace OsnovnaSredstva
 
         private void inputNabavnaVrednost_Leave(object sender, EventArgs e)
         {
-           // CalculateIspravkaVrijednostiSadasnjaVrijednost();
+            // CalculateIspravkaVrijednostiSadasnjaVrijednost();
         }
 
 
@@ -144,7 +151,7 @@ namespace OsnovnaSredstva
         {
             inputDatumAmortizacije.MaxDate = inputDatumOtpisa.Value;
             inputDatumNabavke.MaxDate = inputDatumOtpisa.Value;
-           // CalculateIspravkaVrijednostiSadasnjaVrijednost();
+            // CalculateIspravkaVrijednostiSadasnjaVrijednost();
         }
 
         public void CalculateIspravkaVrijednostiSadasnjaVrijednost()
@@ -254,26 +261,31 @@ namespace OsnovnaSredstva
 
         public void showErrorMessage(string msg)
         {
+            lblMessage.Visible = true;
             lblMessage.ForeColor = Color.Red;
             lblMessage.Text = msg;
             lblMessage.BackColor = Color.White;
             lblMessage.BorderStyle = BorderStyle.FixedSingle;
+            messageHideTimer(lblMessage, 3000);
         }
 
-        public void showMessage(string msg)
+        public void showSuccessMessage(string msg)
         {
+            lblMessage.Visible = true;
             lblMessage.ForeColor = Color.Green;
             lblMessage.Text = msg;
             lblMessage.BackColor = Color.White;
             lblMessage.BorderStyle = BorderStyle.FixedSingle;
+            messageHideTimer(lblMessage, 3000);
         }
 
         public void hideMessage()
         {
-
+            /*
             lblMessage.Text = "";
             lblMessage.BackColor = Color.Transparent;
             lblMessage.BorderStyle = BorderStyle.None;
+            */
         }
 
         private void btnCSV_Click(object sender, EventArgs e)
@@ -351,6 +363,60 @@ namespace OsnovnaSredstva
         private void tblInput_Paint(object sender, PaintEventArgs e)
         {
 
+        }
+
+        private void Form1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+                btnSnimiti.PerformClick();
+        }
+
+        public void clearInput(Control control)
+        {
+
+            var controls = control.Controls;
+            foreach (Control c in controls)
+            {
+                clearInput(c);
+                if (c.GetType() == typeof(DateTimePicker))
+                {
+                    DateTimePicker dtp = (DateTimePicker)c;
+                    if (DateTime.Now < dtp.MinDate)
+                        dtp.Value = dtp.MinDate;
+                    else if (DateTime.Now > dtp.MaxDate)
+                        dtp.Value = dtp.MaxDate;
+                    else
+                        dtp.Value = DateTime.Now;
+                }
+                else if (c.GetType() == typeof(TextBox))
+                {
+                    TextBox tb = (TextBox)c;
+                    tb.Text = "";
+                }
+            }
+        }
+
+        private static void messageHideTimer(Label lblMsg, double afterMiliseconds)
+        {
+            lblMessageHolderForTimer = lblMsg;
+            // Create a timer with a two second interval.
+            System.Timers.Timer aTimer = new System.Timers.Timer(2000);
+            // Hook up the Elapsed event for the timer. 
+            aTimer.Elapsed += OnTimedEvent;
+            aTimer.AutoReset = false;
+            aTimer.Enabled = true;
+        }
+
+        private static void OnTimedEvent(Object source, System.Timers.ElapsedEventArgs e)
+        {
+            System.Timers.Timer timer = (System.Timers.Timer)source;
+            timer.Enabled = false;
+            staticForm.Invoke((MethodInvoker)delegate {
+
+                lblMessageHolderForTimer.Visible = false; // runs on UI thread
+            });
+            //lblMessageHolderForTimer.Visible = false;
+            
         }
     }
 }
