@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 using System.Globalization;
+using System.Windows.Forms;
+
 
 
 namespace OsnovnaSredstva
@@ -12,19 +14,33 @@ namespace OsnovnaSredstva
 
     public class DBManager
     {
-        private static string dbName = "osapdb.db3";
+        private static string dbName ;
         private static SQLiteConnection cnn = null;
         public static void init()
         {
-            cnn = new SQLiteConnection("Data Source=" + dbName);
-            //cnn.SetPassword("OOs.app33");
-            cnn.Open();
+            try
+            {
+                System.IO.StreamReader swdbname = new System.IO.StreamReader(new System.IO.FileStream("dbname", System.IO.FileMode.Open));
+                dbName = swdbname.ReadLine().Trim();
+                cnn = new SQLiteConnection("Data Source=" + dbName);
+                System.IO.StreamReader sw = new System.IO.StreamReader(new System.IO.FileStream("app.key", System.IO.FileMode.Open));
+                string key = sw.ReadLine();
+                cnn.SetPassword(OSUtil.generateHashFromString(dbName + key + dbName));
+                cnn.Open();
 
-            //cnn.ChangePassword("OOs.app33");
-            //cnn.ChangePassword((string)null);
-            string sqlCreateTable = "CREATE TABLE IF NOT EXISTS osnovna_sredstva(id INTEGER PRIMARY KEY   AUTOINCREMENT, inventurni_broj varchar(50) UNIQUE, naziv varchar(200), kolicina double, datum_nabavke varchar(30), nabavna_vrijednost double, konto varchar(100), datum_amortizacije varchar(30), ispravka_vrijednosti double, vek double, datum_otpisa varchar(30), sadasnja_vrednost double, jedinica_mjere varchar(50), dobavljac varchar(100), racun_dok_dobavljaca varchar(200), racunopolagac varchar(200), lokacija varchar(200), smjestaj varchar(200), metoda_amortizacije varchar(200), poreske_grupe varchar(100), broj_po_nabavci integer, amortizaciona_grupa varchar(100), stopa_amortizacije double, active varchar(20));";
-            SQLiteCommand command = new SQLiteCommand(sqlCreateTable, cnn);
-            command.ExecuteNonQuery();
+                //cnn.ChangePassword("OOs.app33");
+                //cnn.ChangePassword((string)null);
+                string sqlCreateTable = "CREATE TABLE IF NOT EXISTS osnovna_sredstva(id INTEGER PRIMARY KEY   AUTOINCREMENT, inventurni_broj varchar(50) UNIQUE, naziv varchar(200), kolicina double, datum_nabavke varchar(30), nabavna_vrijednost double, konto varchar(100), datum_amortizacije varchar(30), ispravka_vrijednosti double, vek double, datum_otpisa varchar(30), sadasnja_vrednost double, jedinica_mjere varchar(50), dobavljac varchar(100), racun_dok_dobavljaca varchar(200), racunopolagac varchar(200), lokacija varchar(200), smjestaj varchar(200), metoda_amortizacije varchar(200), poreske_grupe varchar(100), broj_po_nabavci integer, amortizaciona_grupa varchar(100), stopa_amortizacije double, active varchar(20));";
+                SQLiteCommand command = new SQLiteCommand(sqlCreateTable, cnn);
+                command.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                string messageBoxText = "Program nije korektno inicijalizovan.\nError: "+ex.Message+"\nProgram ce se ugasiti.";
+                string caption = "Error";
+                MessageBox.Show(messageBoxText, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                System.Environment.Exit(0);
+            }
 
         }
 
@@ -214,7 +230,7 @@ namespace OsnovnaSredstva
                 if (lwf.fieldMaxLength["konto"].Length < item.konto.Length) lwf.fieldMaxLength["konto"] = item.konto;
 
                 Console.WriteLine("D: " + reader.GetDateTime(4).ToString("dd.MM.yyyy."));
-                
+
                 item.datumNabavke = reader.GetString(4).ToString();
                 if (!lwf.fieldMaxLength.ContainsKey("datumNabavke")) lwf.fieldMaxLength.Add("datumNabavke", OSUtil.columnNames["datumNabavke"]);
                 if (lwf.fieldMaxLength["datumNabavke"].Length < item.datumNabavke.Split(' ')[0].Length) lwf.fieldMaxLength["datumNabavke"] = item.datumNabavke.Split(' ')[0];
@@ -326,7 +342,7 @@ namespace OsnovnaSredstva
                 }
                 else
                 {
-                    
+
                 }
                 if (first)
                 {
@@ -336,7 +352,7 @@ namespace OsnovnaSredstva
             }
             sql += " and active='active';";
             SQLiteCommand command = new SQLiteCommand(sql, cnn);
-            
+
             SQLiteDataReader reader;
             reader = command.ExecuteReader();
             Console.WriteLine("SQl command filter: " + command.CommandText);
@@ -379,7 +395,7 @@ namespace OsnovnaSredstva
                 if (!lwf.fieldMaxLength.ContainsKey("datumAmortizacije")) lwf.fieldMaxLength.Add("datumAmortizacije", "Datum Amortizacije");
                 if (lwf.fieldMaxLength["datumAmortizacije"].Length < item.datumAmortizacije.Length) lwf.fieldMaxLength["datumAmortizacije"] = item.datumAmortizacije;
 
-                
+
                 item.vek = double.Parse(reader["vek"].ToString());
                 if (!lwf.fieldMaxLength.ContainsKey("vek")) lwf.fieldMaxLength.Add("vek", "vek");
                 if (lwf.fieldMaxLength["vek"].Length < item.vek.ToString().Length) lwf.fieldMaxLength["Vek"] = item.vek.ToString();
@@ -388,7 +404,7 @@ namespace OsnovnaSredstva
                 if (!lwf.fieldMaxLength.ContainsKey("datumOtpisa")) lwf.fieldMaxLength.Add("datumOtpisa", "Datum Otpisa");
                 if (lwf.fieldMaxLength["datumOtpisa"].Length < item.datumOtpisa.Length) lwf.fieldMaxLength["datumOtpisa"] = item.datumOtpisa;
 
-                
+
                 item.jedinicaMjere = reader["jedinica_mjere"].ToString();
                 if (!lwf.fieldMaxLength.ContainsKey("jednicaMjere")) lwf.fieldMaxLength.Add("jednicaMjere", "Jednica Mjere");
                 if (lwf.fieldMaxLength["jednicaMjere"].Length < item.jedinicaMjere.Length) lwf.fieldMaxLength["jednicaMjere"] = item.jedinicaMjere;
@@ -481,7 +497,25 @@ namespace OsnovnaSredstva
             public DBManager.Condition condition { set; get; }
             public string value { set; get; }
         }
+
+        public static bool checkUserLogin(string username, string password)
+        {
+            bool ret = false;
+
+            
+            string sql = "SELECT * FROM users WHERE korisnicko_ime='" + @username + "' and lozinka='" + @password+"';";
+
+            SQLiteCommand cmd = new SQLiteCommand(sql,cnn);
+
+            SQLiteDataReader reader;
+            reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                Console.WriteLine(reader["korisnicko_ime"]);
+            }
+            return reader.HasRows;
+        }
     }
 
-    
+
 }

@@ -162,5 +162,35 @@ namespace OsnovnaSredstva
         {
             return (T)Convert.ChangeType(input, typeof(T));
         }
+
+        public static string generateHashFromString(string s)
+        {
+            string ret = "";
+            byte[] HashValue;
+
+            string MessageString = s;
+
+            //Create a new instance of the UnicodeEncoding class to 
+            //convert the string into an array of Unicode bytes.
+            UnicodeEncoding UE = new UnicodeEncoding();
+
+            //Convert the string into an array of bytes.
+            byte[] MessageBytes = UE.GetBytes(MessageString);
+
+            //Create a new instance of the SHA1Managed class to create 
+            //the hash value.
+            System.Security.Cryptography.SHA256Managed SHhash = new System.Security.Cryptography.SHA256Managed();
+
+            //Create the hash value from the array of bytes.
+            HashValue = SHhash.ComputeHash(MessageBytes);
+
+            //Display the hash value to the console. 
+            foreach (byte b in HashValue)
+            {
+                ret += b;
+            }
+
+            return ret;
+        }
     }
 }
