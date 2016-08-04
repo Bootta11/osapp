@@ -171,6 +171,7 @@ namespace OsnovnaSredstva
                 {"kolicina", 65 },
                 {"datumNabavke", 93 },
                 {"datumAmortizacije", 135 },
+                { "vrijednostNaDatumAmortizacije", 135 },
                 {"nabavnaVrijednost", 128 },
                 {"ispravkaVrijednosti", 142 },
                 {"sadasnjaVrijednost", 135 },

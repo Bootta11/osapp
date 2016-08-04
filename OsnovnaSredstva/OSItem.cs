@@ -17,6 +17,8 @@ namespace OsnovnaSredstva
         public double nabavnaVrijednost { set; get; }
         public string konto { set; get; }
         public string datumAmortizacije { set; get; }
+        public string datumVrijednosti { set; get; }
+        public double vrijednostNaDatum { set; get; }
         public double ispravkaVrijednosti { set; get; }
         public double vek { set; get; }
         public string datumOtpisa { set; get; }

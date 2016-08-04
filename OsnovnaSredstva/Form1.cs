@@ -78,7 +78,7 @@ namespace OsnovnaSredstva
             item.vek = temp;
             temp = 0;
             item.datumOtpisa = inputDatumOtpisa.Text;
-            //item.sadasnjaVrijednost = double.Parse(inputSadasnjaVrednost.Text);
+            item.vrijednostNaDatum = double.Parse(inputVrijednostNaDatumAmortizacije.Text);
             item.jedinicaMjere = inputjednicaMjere.Text;
             item.dobavljac = inputDobavljac.Text;
             item.racunDobavljaca = inputRacunDokDobavljaca.Text;
@@ -138,6 +138,7 @@ namespace OsnovnaSredstva
         {
             Console.WriteLine(inputDatumNabavke.Text);
             inputDatumAmortizacije.MinDate = inputDatumNabavke.Value;
+            
             inputDatumOtpisa.MinDate = inputDatumNabavke.Value;
             //CalculateIspravkaVrijednostiSadasnjaVrijednost();
         }
@@ -145,11 +146,13 @@ namespace OsnovnaSredstva
         private void inputDatumAmortizacije_ValueChanged(object sender, EventArgs e)
         {
             //CalculateIspravkaVrijednostiSadasnjaVrijednost();
+            inputDatumVrijednosti.MinDate = inputDatumAmortizacije.Value;
         }
 
         private void inputDatumOtpisa_ValueChanged(object sender, EventArgs e)
         {
             inputDatumAmortizacije.MaxDate = inputDatumOtpisa.Value;
+            inputDatumVrijednosti.MaxDate = inputDatumOtpisa.Value;
             inputDatumNabavke.MaxDate = inputDatumOtpisa.Value;
             // CalculateIspravkaVrijednostiSadasnjaVrijednost();
         }
@@ -166,8 +169,8 @@ namespace OsnovnaSredstva
                 double nabavnaVrijednost = double.Parse(inputNabavnaVrednost.Text);
                 double stopaAmortizacije = double.Parse(inputStopaAmortizacije.Text);
                 //double ispravkaVrijednosti = ((nabavnaVrijednost * stopaAmortizacije * daysDiff) / (365 * 100));
-                double ispravkaVrijednosti = OSUtil.ispravkaVrijednosti(nabavnaVrijednost, dtNow, dtamortizacije, stopaAmortizacije);
-                double sadasnjaVrijednost = nabavnaVrijednost - ispravkaVrijednosti;
+                //double ispravkaVrijednosti = OSUtil.ispravkaVrijednosti(nabavnaVrijednost, dtNow, dtamortizacije, stopaAmortizacije);
+                //double sadasnjaVrijednost = nabavnaVrijednost - ispravkaVrijednosti;
 
 
                 //inputIspravkaVrijednosti.Text = ispravkaVrijednosti.ToString("0.00") + "";
@@ -357,7 +360,19 @@ namespace OsnovnaSredstva
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            this.Hide();
 
+            LoginForm login = new LoginForm();
+
+            if (login.ShowDialog() != DialogResult.OK)
+            {
+                //Handle authentication failures as necessary, for example:
+                Application.Exit();
+            }
+            else
+            {
+                this.Show();
+            }
         }
 
         private void tblInput_Paint(object sender, PaintEventArgs e)
@@ -418,5 +433,7 @@ namespace OsnovnaSredstva
             //lblMessageHolderForTimer.Visible = false;
             
         }
+
+        
     }
 }

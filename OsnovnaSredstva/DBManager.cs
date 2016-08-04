@@ -14,32 +14,49 @@ namespace OsnovnaSredstva
 
     public class DBManager
     {
-        private static string dbName ;
+        private static string dbName;
         private static SQLiteConnection cnn = null;
+        static bool initialized = false;
         public static void init()
         {
-            try
+            if (!initialized)
             {
-                System.IO.StreamReader swdbname = new System.IO.StreamReader(new System.IO.FileStream("dbname", System.IO.FileMode.Open));
-                dbName = swdbname.ReadLine().Trim();
-                cnn = new SQLiteConnection("Data Source=" + dbName);
-                System.IO.StreamReader sw = new System.IO.StreamReader(new System.IO.FileStream("app.key", System.IO.FileMode.Open));
-                string key = sw.ReadLine();
-                cnn.SetPassword(OSUtil.generateHashFromString(dbName + key + dbName));
-                cnn.Open();
+                try
+                {
+                    System.IO.StreamReader swdbname = new System.IO.StreamReader(new System.IO.FileStream("dbname", System.IO.FileMode.Open));
+                    dbName = swdbname.ReadLine().Trim();
+                    cnn = new SQLiteConnection("Data Source=" + dbName);
+                    System.IO.StreamReader sw = new System.IO.StreamReader(new System.IO.FileStream("app.key", System.IO.FileMode.Open));
+                    string key = sw.ReadLine();
+                    cnn.SetPassword(OSUtil.generateHashFromString(dbName + key + dbName));
+                    cnn.Open();
 
-                //cnn.ChangePassword("OOs.app33");
-                //cnn.ChangePassword((string)null);
-                string sqlCreateTable = "CREATE TABLE IF NOT EXISTS osnovna_sredstva(id INTEGER PRIMARY KEY   AUTOINCREMENT, inventurni_broj varchar(50) UNIQUE, naziv varchar(200), kolicina double, datum_nabavke varchar(30), nabavna_vrijednost double, konto varchar(100), datum_amortizacije varchar(30), ispravka_vrijednosti double, vek double, datum_otpisa varchar(30), sadasnja_vrednost double, jedinica_mjere varchar(50), dobavljac varchar(100), racun_dok_dobavljaca varchar(200), racunopolagac varchar(200), lokacija varchar(200), smjestaj varchar(200), metoda_amortizacije varchar(200), poreske_grupe varchar(100), broj_po_nabavci integer, amortizaciona_grupa varchar(100), stopa_amortizacije double, active varchar(20));";
-                SQLiteCommand command = new SQLiteCommand(sqlCreateTable, cnn);
-                command.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                string messageBoxText = "Program nije korektno inicijalizovan.\nError: "+ex.Message+"\nProgram ce se ugasiti.";
-                string caption = "Error";
-                MessageBox.Show(messageBoxText, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                System.Environment.Exit(0);
+                    try
+                    {
+                        new SQLiteCommand("SELECT name FROM sqlite_master;", cnn).ExecuteNonQuery();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.GetType() + " " + ex.Message);
+                        cnn.Close();
+                        cnn.SetPassword((string)null);
+                        cnn.Open();
+                    }
+
+                    //cnn.ChangePassword("OOs.app33");
+                    //cnn.ChangePassword((string)null);
+                    string sqlCreateTable = "CREATE TABLE IF NOT EXISTS osnovna_sredstva(id INTEGER PRIMARY KEY   AUTOINCREMENT, inventurni_broj varchar(50) UNIQUE, naziv varchar(200), kolicina double, datum_nabavke varchar(30), nabavna_vrijednost double, konto varchar(100), datum_amortizacije varchar(30), datum_vrijednosti varchar(30), vr_na_datum_amortizacije double, ispravka_vrijednosti double, vek double, datum_otpisa varchar(30), sadasnja_vrednost double, jedinica_mjere varchar(50), dobavljac varchar(100), racun_dok_dobavljaca varchar(200), racunopolagac varchar(200), lokacija varchar(200), smjestaj varchar(200), metoda_amortizacije varchar(200), poreske_grupe varchar(100), broj_po_nabavci integer, amortizaciona_grupa varchar(100), stopa_amortizacije double, active varchar(20));";
+                    SQLiteCommand command = new SQLiteCommand(sqlCreateTable, cnn);
+                    command.ExecuteNonQuery();
+                    initialized = true;
+                }
+                catch (Exception ex)
+                {
+                    string messageBoxText = "Program nije korektno inicijalizovan.\nError: " + ex.Message + "\nProgram ce se ugasiti.";
+                    string caption = "Error";
+                    MessageBox.Show(messageBoxText, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    System.Environment.Exit(0);
+                }
             }
 
         }
@@ -50,13 +67,15 @@ namespace OsnovnaSredstva
             try
             {
                 CultureInfo provider = CultureInfo.InvariantCulture;
-                string sql = "insert into osnovna_sredstva (inventurni_broj, naziv , kolicina, datum_nabavke, nabavna_vrijednost, konto, datum_amortizacije, ispravka_vrijednosti, vek, datum_otpisa, sadasnja_vrednost, jedinica_mjere, dobavljac, racun_dok_dobavljaca, racunopolagac, lokacija, smjestaj, metoda_amortizacije, poreske_grupe, broj_po_nabavci, amortizaciona_grupa, stopa_amortizacije, active)" +
-                    "  values ('" + item.inventurniBroj + "', '" + item.naziv + "' , '" + item.kolicina + "', @datum_nabavke, '" + item.nabavnaVrijednost + "', '" + item.konto + "', @datum_amortizacije, '" + item.ispravkaVrijednosti + "', '" + item.vek + "', @datum_otpisa, '" + item.sadasnjaVrijednost + "', '" + item.jedinicaMjere + "', '" + item.dobavljac + "', '" + item.racunDobavljaca + "', '" + item.racunDobavljaca + "', '" + item.lokacija + "', '" + item.smjestaj + "', '" + item.metodaAmortizacije + "', '" + item.poreskeGrupe + "', '" + item.brojPoNabavci + "', '" + item.amortizacionaGrupa + "', '" + item.stopaAmortizacije + "', '" + item.active + "')";
+                string sql = "insert into osnovna_sredstva (inventurni_broj, naziv , kolicina, datum_nabavke, nabavna_vrijednost, konto, datum_amortizacije, datum_vrijednosti, vr_na_datum_amortizacije, ispravka_vrijednosti, vek, datum_otpisa, sadasnja_vrednost, jedinica_mjere, dobavljac, racun_dok_dobavljaca, racunopolagac, lokacija, smjestaj, metoda_amortizacije, poreske_grupe, broj_po_nabavci, amortizaciona_grupa, stopa_amortizacije, active)" +
+                    "  values ('" + item.inventurniBroj + "', '" + item.naziv + "' , '" + item.kolicina + "', @datum_nabavke, '" + item.nabavnaVrijednost + "', '" + item.konto + "', @datum_amortizacije, @datum_vrijednosti, @vr_na_datum_amortizacije, '" + item.ispravkaVrijednosti + "', '" + item.vek + "', @datum_otpisa, '" + item.sadasnjaVrijednost + "', '" + item.jedinicaMjere + "', '" + item.dobavljac + "', '" + item.racunDobavljaca + "', '" + item.racunDobavljaca + "', '" + item.lokacija + "', '" + item.smjestaj + "', '" + item.metodaAmortizacije + "', '" + item.poreskeGrupe + "', '" + item.brojPoNabavci + "', '" + item.amortizacionaGrupa + "', '" + item.stopaAmortizacije + "', '" + item.active + "')";
 
                 SQLiteCommand command = new SQLiteCommand(sql, cnn);
                 command.Parameters.AddWithValue("@datum_nabavke", DateTime.ParseExact(item.datumNabavke, "dd.MM.yyyy.", provider));
                 command.Parameters.AddWithValue("@datum_amortizacije", DateTime.ParseExact(item.datumAmortizacije, "dd.MM.yyyy.", provider));
+                command.Parameters.AddWithValue("@datum_vrijednosti", DateTime.ParseExact(item.datumVrijednosti, "dd.MM.yyyy.", provider));
                 command.Parameters.AddWithValue("@datum_otpisa", DateTime.ParseExact(item.datumOtpisa, "dd.MM.yyyy.", provider));
+                command.Parameters.AddWithValue("@vr_na_datum_amortizacije", item.vrijednostNaDatum);
                 command.ExecuteNonQuery();
             }
             catch (Exception ex)
@@ -109,15 +128,19 @@ namespace OsnovnaSredstva
                 item.konto = reader["konto"].ToString();
 
                 Console.WriteLine("D: " + reader.GetDateTime(4).ToString("dd.MM.yyyy."));
-                item.datumNabavke = reader.GetString(4).ToString();
+                item.datumNabavke = reader["datum_nabavke"].ToString();
 
-                item.datumAmortizacije = reader.GetString(7).ToString();
+                item.datumAmortizacije = reader["datum_amortizacije"].ToString();
+
+                item.datumVrijednosti = reader["datum_vrijednosti"].ToString();
+
+                item.vrijednostNaDatum = double.Parse(reader["vr_na_datum_amortizacije"].ToString());
 
                 item.ispravkaVrijednosti = double.Parse(reader["ispravka_vrijednosti"].ToString());
 
                 item.vek = double.Parse(reader["vek"].ToString());
 
-                item.datumOtpisa = reader.GetString(10).ToString();
+                item.datumOtpisa = reader["datum_otpisa"].ToString();
 
                 item.sadasnjaVrijednost = double.Parse(reader["sadasnja_vrednost"].ToString());
 
@@ -157,7 +180,7 @@ namespace OsnovnaSredstva
         public static int UpdateItem(OSItem item)
         {
             string sql = "UPDATE osnovna_sredstva " +
-                "SET inventurni_broj=@inventurni_broj, naziv=@naziv , kolicina=@kolicina, datum_nabavke=@datum_nabavke, nabavna_vrijednost=@nabavna_vrijednost, konto=@konto, datum_amortizacije=@datum_amortizacije, ispravka_vrijednosti=@ispravka_vrijednosti, vek=@vek, datum_otpisa=@datum_otpisa, sadasnja_vrednost=@sadasnja_vrednost, jedinica_mjere=@jedinica_mjere, dobavljac=@dobavljac, racun_dok_dobavljaca=@racun_dok_dobavljaca, racunopolagac=@racunopolagac, lokacija=@lokacija, smjestaj=@smjestaj, metoda_amortizacije=@metoda_amortizacije, poreske_grupe=@poreske_grupe, broj_po_nabavci=@broj_po_nabavci, amortizaciona_grupa=@amortizaciona_grupa, stopa_amortizacije=@stopa_amortizacije, active=@active " +
+                "SET inventurni_broj=@inventurni_broj, naziv=@naziv , kolicina=@kolicina, datum_nabavke=@datum_nabavke, nabavna_vrijednost=@nabavna_vrijednost, konto=@konto, datum_amortizacije=@datum_amortizacije, datum_vrijednosti=@datum_vrijednosti, vr_na_datum_amortizacije=@vr_na_datum_amortizacije, ispravka_vrijednosti=@ispravka_vrijednosti, vek=@vek, datum_otpisa=@datum_otpisa, sadasnja_vrednost=@sadasnja_vrednost, jedinica_mjere=@jedinica_mjere, dobavljac=@dobavljac, racun_dok_dobavljaca=@racun_dok_dobavljaca, racunopolagac=@racunopolagac, lokacija=@lokacija, smjestaj=@smjestaj, metoda_amortizacije=@metoda_amortizacije, poreske_grupe=@poreske_grupe, broj_po_nabavci=@broj_po_nabavci, amortizaciona_grupa=@amortizaciona_grupa, stopa_amortizacije=@stopa_amortizacije, active=@active " +
                 "where id=@id;";
 
             SQLiteCommand command = new SQLiteCommand(sql, cnn);
@@ -168,6 +191,8 @@ namespace OsnovnaSredstva
             command.Parameters.AddWithValue("@nabavna_vrijednost", item.nabavnaVrijednost);
             command.Parameters.AddWithValue("@konto", item.konto);
             command.Parameters.AddWithValue("@datum_amortizacije", item.datumAmortizacije);
+            command.Parameters.AddWithValue("@datum_vrijednosti", item.datumVrijednosti);
+            command.Parameters.AddWithValue("@vr_na_datum_amortizacije", item.vrijednostNaDatum);
             command.Parameters.AddWithValue("@ispravka_vrijednosti", item.ispravkaVrijednosti);
             command.Parameters.AddWithValue("@vek", item.vek);
             command.Parameters.AddWithValue("@datum_otpisa", item.datumOtpisa);
@@ -231,13 +256,22 @@ namespace OsnovnaSredstva
 
                 Console.WriteLine("D: " + reader.GetDateTime(4).ToString("dd.MM.yyyy."));
 
-                item.datumNabavke = reader.GetString(4).ToString();
+                item.datumNabavke = reader["datum_nabavke"].ToString();
                 if (!lwf.fieldMaxLength.ContainsKey("datumNabavke")) lwf.fieldMaxLength.Add("datumNabavke", OSUtil.columnNames["datumNabavke"]);
                 if (lwf.fieldMaxLength["datumNabavke"].Length < item.datumNabavke.Split(' ')[0].Length) lwf.fieldMaxLength["datumNabavke"] = item.datumNabavke.Split(' ')[0];
 
-                item.datumAmortizacije = reader.GetString(7).ToString();
+                item.datumAmortizacije = reader["datum_amortizacije"].ToString();
                 if (!lwf.fieldMaxLength.ContainsKey("datumAmortizacije")) lwf.fieldMaxLength.Add("datumAmortizacije", "Datum Amortizacije");
                 if (lwf.fieldMaxLength["datumAmortizacije"].Length < item.datumAmortizacije.Length) lwf.fieldMaxLength["datumAmortizacije"] = item.datumAmortizacije;
+
+                item.datumVrijednosti = reader["datum_vrijednosti"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("datumVrijednosti")) lwf.fieldMaxLength.Add("datumVrijednosti", OSUtil.columnNames["datumVrijednosti"]);
+                if (lwf.fieldMaxLength["datumVrijednosti"].Length < item.datumVrijednosti.Length) lwf.fieldMaxLength["datumVrijednosti"] = item.datumVrijednosti;
+
+                item.vrijednostNaDatum = double.Parse(reader["vr_na_datum_amortizacije"].ToString());
+                if (!lwf.fieldMaxLength.ContainsKey("vrijednostNaDatum")) lwf.fieldMaxLength.Add("vrijednostNaDatum", OSUtil.columnNames["vrijednostNaDatum"]);
+                if (lwf.fieldMaxLength["vrijednostNaDatum"].Length < item.vrijednostNaDatum.ToString().Length) lwf.fieldMaxLength["vrijednostNaDatum"] = item.vrijednostNaDatum.ToString();
+
 
                 item.ispravkaVrijednosti = double.Parse(reader["ispravka_vrijednosti"].ToString());
                 if (!lwf.fieldMaxLength.ContainsKey("ispravkaVrijednosti")) lwf.fieldMaxLength.Add("ispravkaVrijednosti", "Ispravka Vrijednosti");
@@ -247,7 +281,7 @@ namespace OsnovnaSredstva
                 if (!lwf.fieldMaxLength.ContainsKey("vek")) lwf.fieldMaxLength.Add("vek", "vek");
                 if (lwf.fieldMaxLength["vek"].Length < item.vek.ToString().Length) lwf.fieldMaxLength["Vek"] = item.vek.ToString();
 
-                item.datumOtpisa = reader.GetString(10).ToString();
+                item.datumOtpisa = reader["datum_otpisa"].ToString();
                 if (!lwf.fieldMaxLength.ContainsKey("datumOtpisa")) lwf.fieldMaxLength.Add("datumOtpisa", "Datum Otpisa");
                 if (lwf.fieldMaxLength["datumOtpisa"].Length < item.datumOtpisa.Length) lwf.fieldMaxLength["datumOtpisa"] = item.datumOtpisa;
 
@@ -387,20 +421,28 @@ namespace OsnovnaSredstva
                 if (lwf.fieldMaxLength["konto"].Length < item.konto.Length) lwf.fieldMaxLength["konto"] = item.konto;
 
                 Console.WriteLine("D: " + reader.GetDateTime(4).ToString("dd.MM.yyyy."));
-                item.datumNabavke = reader.GetString(4).ToString();
+                item.datumNabavke = reader["datum_nabavke"].ToString();
                 if (!lwf.fieldMaxLength.ContainsKey("datumNabavke")) lwf.fieldMaxLength.Add("datumNabavke", "Datum Nabavke");
                 if (lwf.fieldMaxLength["datumNabavke"].Length < item.datumNabavke.Length) lwf.fieldMaxLength["datumNabavke"] = item.datumNabavke;
 
-                item.datumAmortizacije = reader.GetString(7).ToString();
+                item.datumAmortizacije = reader["datum_amortizacije"].ToString();
                 if (!lwf.fieldMaxLength.ContainsKey("datumAmortizacije")) lwf.fieldMaxLength.Add("datumAmortizacije", "Datum Amortizacije");
                 if (lwf.fieldMaxLength["datumAmortizacije"].Length < item.datumAmortizacije.Length) lwf.fieldMaxLength["datumAmortizacije"] = item.datumAmortizacije;
 
+                item.datumVrijednosti = reader["datum_vrijednosti"].ToString();
+                if (!lwf.fieldMaxLength.ContainsKey("datumVrijednosti")) lwf.fieldMaxLength.Add("datumVrijednosti", OSUtil.columnNames["datumVrijednosti"]);
+                if (lwf.fieldMaxLength["datumVrijednosti"].Length < item.datumVrijednosti.Length) lwf.fieldMaxLength["datumVrijednosti"] = item.datumVrijednosti;
+
+
+                item.vrijednostNaDatum = double.Parse(reader["vr_na_datum_amortizacije"].ToString());
+                if (!lwf.fieldMaxLength.ContainsKey("vrijednostNaDatum")) lwf.fieldMaxLength.Add("vrijednostNaDatumAmortizacije", OSUtil.columnNames["vrijednostNaDatum"]);
+                if (lwf.fieldMaxLength["vrijednostNaDatum"].Length < item.vrijednostNaDatum.ToString().Length) lwf.fieldMaxLength["vrijednostNaDatum"] = item.vrijednostNaDatum.ToString();
 
                 item.vek = double.Parse(reader["vek"].ToString());
                 if (!lwf.fieldMaxLength.ContainsKey("vek")) lwf.fieldMaxLength.Add("vek", "vek");
                 if (lwf.fieldMaxLength["vek"].Length < item.vek.ToString().Length) lwf.fieldMaxLength["Vek"] = item.vek.ToString();
 
-                item.datumOtpisa = reader.GetString(10).ToString();
+                item.datumOtpisa = reader["datum_otpisa"].ToString();
                 if (!lwf.fieldMaxLength.ContainsKey("datumOtpisa")) lwf.fieldMaxLength.Add("datumOtpisa", "Datum Otpisa");
                 if (lwf.fieldMaxLength["datumOtpisa"].Length < item.datumOtpisa.Length) lwf.fieldMaxLength["datumOtpisa"] = item.datumOtpisa;
 
@@ -453,7 +495,24 @@ namespace OsnovnaSredstva
                 if (!lwf.fieldMaxLength.ContainsKey("active")) lwf.fieldMaxLength.Add("active", "Active");
                 if (lwf.fieldMaxLength["active"].Length < item.active.Length) lwf.fieldMaxLength["active"] = item.active;
 
-                item.ispravkaVrijednosti = Math.Round(OSUtil.ispravkaVrijednosti(item.nabavnaVrijednost, datumAmortizacije, DateTime.ParseExact(item.datumAmortizacije, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture), item.stopaAmortizacije), 2);
+                double vrijednostNaDatum = item.nabavnaVrijednost;
+                double sadasnjaVrijednost;
+                if (item.vrijednostNaDatum >= 0)
+                {
+                    vrijednostNaDatum = item.vrijednostNaDatum;
+                    sadasnjaVrijednost = vrijednostNaDatum;
+                    //DateTime datumAmortizacije2 = DateTime.ParseExact(item.datumAmortizacije, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+                    DateTime datumVrijednosti = DateTime.ParseExact(item.datumVrijednosti, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+                    item.ispravkaVrijednosti = Math.Round(OSUtil.ispravkaVrijednostiNaDatum(item.nabavnaVrijednost, datumAmortizacije, DateTime.ParseExact(item.datumAmortizacije, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture), item.stopaAmortizacije, vrijednostNaDatum, datumVrijednosti), 2);
+                }
+                else
+                {
+                    sadasnjaVrijednost = item.nabavnaVrijednost;
+                    //DateTime datumAmortizacije2 = DateTime.ParseExact(item.datumAmortizacije, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+                    item.ispravkaVrijednosti = Math.Round(OSUtil.ispravkaVrijednosti(item.nabavnaVrijednost, datumAmortizacije, DateTime.ParseExact(item.datumAmortizacije, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture), item.stopaAmortizacije), 2);
+                }
+
+                //item.ispravkaVrijednosti = Math.Round(OSUtil.ispravkaVrijednosti(item.nabavnaVrijednost, datumAmortizacije, DateTime.ParseExact(item.datumAmortizacije, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture), item.stopaAmortizacije), 2);
                 if (!lwf.fieldMaxLength.ContainsKey("ispravkaVrijednosti")) lwf.fieldMaxLength.Add("ispravkaVrijednosti", item.inventurniBroj);
                 else if (lwf.fieldMaxLength["ispravkaVrijednosti"].Length < item.inventurniBroj.Length) lwf.fieldMaxLength["ispravkaVrijednosti"] = item.ispravkaVrijednosti.ToString();
 
@@ -476,15 +535,28 @@ namespace OsnovnaSredstva
             ListWithFieldMaxLengths allItemsFromDB = GetAll();
             foreach (OSItem item in allItemsFromDB.items)
             {
-                item.ispravkaVrijednosti = Math.Round(OSUtil.ispravkaVrijednosti(item.nabavnaVrijednost, pickedDate, DateTime.ParseExact(item.datumAmortizacije, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture), item.stopaAmortizacije), 2);
-                if (!allItemsFromDB.fieldMaxLength.ContainsKey("ispravkaVrijednosti")) allItemsFromDB.fieldMaxLength.Add("ispravkaVrijednosti", item.inventurniBroj);
-                else if (allItemsFromDB.fieldMaxLength["ispravkaVrijednosti"].Length < item.inventurniBroj.Length) allItemsFromDB.fieldMaxLength.Add("ispravkaVrijednosti", item.ispravkaVrijednosti.ToString());
+                double vrijednostNaDatum = item.nabavnaVrijednost;
+                double sadasnjaVrijednost;
+                if (item.vrijednostNaDatum >= 0)
+                {
+                    vrijednostNaDatum = item.vrijednostNaDatum;
+                    sadasnjaVrijednost = vrijednostNaDatum;
+                    DateTime datumAmortizacije = DateTime.ParseExact(item.datumAmortizacije, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+                    DateTime datumVrijednosti = DateTime.ParseExact(item.datumVrijednosti, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+                    item.ispravkaVrijednosti = Math.Round(OSUtil.ispravkaVrijednostiNaDatum(item.nabavnaVrijednost, pickedDate, datumAmortizacije, item.stopaAmortizacije, vrijednostNaDatum,datumVrijednosti), 5);
+                }else {
+                    sadasnjaVrijednost = item.nabavnaVrijednost;
+                    DateTime datumAmortizacije = DateTime.ParseExact(item.datumAmortizacije, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+                    item.ispravkaVrijednosti = Math.Round(OSUtil.ispravkaVrijednosti(item.nabavnaVrijednost, pickedDate, datumAmortizacije, item.stopaAmortizacije), 5);
+                }
+                if (!allItemsFromDB.fieldMaxLength.ContainsKey("ispravkaVrijednosti")) allItemsFromDB.fieldMaxLength.Add("ispravkaVrijednosti", item.ispravkaVrijednosti.ToString());
+                else if (allItemsFromDB.fieldMaxLength["ispravkaVrijednosti"].Length < item.ispravkaVrijednosti.ToString().Length) allItemsFromDB.fieldMaxLength.Add("ispravkaVrijednosti", item.ispravkaVrijednosti.ToString());
 
-                item.sadasnjaVrijednost = Math.Round(item.nabavnaVrijednost - item.ispravkaVrijednosti, 2);
-                if (!allItemsFromDB.fieldMaxLength.ContainsKey("sadasnjaVrijednost")) allItemsFromDB.fieldMaxLength.Add("sadasnjaVrijednost", item.inventurniBroj);
-                else if (allItemsFromDB.fieldMaxLength["sadasnjaVrijednost"].Length < item.inventurniBroj.Length) allItemsFromDB.fieldMaxLength.Add("sadasnjaVrijednost", item.sadasnjaVrijednost.ToString());
+                item.sadasnjaVrijednost = Math.Round(sadasnjaVrijednost - item.ispravkaVrijednosti, 5);
+                if (!allItemsFromDB.fieldMaxLength.ContainsKey("sadasnjaVrijednost")) allItemsFromDB.fieldMaxLength.Add("sadasnjaVrijednost", item.sadasnjaVrijednost.ToString());
+                else if (allItemsFromDB.fieldMaxLength["sadasnjaVrijednost"].Length < item.sadasnjaVrijednost.ToString().Length) allItemsFromDB.fieldMaxLength.Add("sadasnjaVrijednost", item.sadasnjaVrijednost.ToString());
 
-                Console.WriteLine("Nabavna: " + item.nabavnaVrijednost + " ispracka: " + item.ispravkaVrijednosti + " sadasnja: " + item.sadasnjaVrijednost);
+                Console.WriteLine("Nabavna: " + item.nabavnaVrijednost + " ispravka: " + item.ispravkaVrijednosti + " sadasnja: " + item.sadasnjaVrijednost);
                 ret.items.Add(item);
             }
 
@@ -502,18 +574,26 @@ namespace OsnovnaSredstva
         {
             bool ret = false;
 
-            
-            string sql = "SELECT * FROM users WHERE korisnicko_ime='" + @username + "' and lozinka='" + @password+"';";
-
-            SQLiteCommand cmd = new SQLiteCommand(sql,cnn);
-
-            SQLiteDataReader reader;
-            reader = cmd.ExecuteReader();
-            if (reader.Read())
+            try
             {
-                Console.WriteLine(reader["korisnicko_ime"]);
+                string sql = "SELECT * FROM users WHERE korisnicko_ime='" + @username + "' and lozinka='" + @password + "';";
+
+                SQLiteCommand cmd = new SQLiteCommand(sql, cnn);
+
+                SQLiteDataReader reader;
+                reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    Console.WriteLine(reader["korisnicko_ime"]);
+                }
+                ret = reader.HasRows;
             }
-            return reader.HasRows;
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            return ret;
         }
     }
 
