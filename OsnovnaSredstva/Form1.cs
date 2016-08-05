@@ -46,7 +46,11 @@ namespace OsnovnaSredstva
             inputVek.LostFocus += textbox_OnlyNumbersAndDecimal;
             inputBrojPoNabavci.LostFocus += textbox_OnlyNumbers;
             //Controls.SetChildIndex(pictureBox1, 0);
+            
             staticForm = this;
+            addTabOnEnterPressToChildComponents(tblInput);
+            inputMetodaAmortizacije.Items.Insert(0, "linearna");
+            inputInventurniBroj.Focus();
         }
 
         public bool checkFieldsOK()
@@ -73,19 +77,21 @@ namespace OsnovnaSredstva
             temp = 0;
             item.konto = inputKonto.Text;
             item.datumAmortizacije = inputDatumAmortizacije.Text;
+            item.datumVrijednosti = inputDatumVrijednosti.Text;
             //item.ispravkaVrijednosti = double.Parse(inputIspravkaVrijednosti.Text);
             parseOK = double.TryParse(inputVek.Text, out temp);
             item.vek = temp;
             temp = 0;
             item.datumOtpisa = inputDatumOtpisa.Text;
-            item.vrijednostNaDatum = double.Parse(inputVrijednostNaDatumAmortizacije.Text);
+            parseOK = double.TryParse(inputVrijednostNaDatumAmortizacije.Text, out temp);
+            item.vrijednostNaDatum = temp;
             item.jedinicaMjere = inputjednicaMjere.Text;
             item.dobavljac = inputDobavljac.Text;
             item.racunDobavljaca = inputRacunDokDobavljaca.Text;
             item.racunopolagac = inputRacunopolagac.Text;
             item.lokacija = inputLokacija.Text;
             item.smjestaj = inputSmjestaj.Text;
-            item.metodaAmortizacije = inputMetodaAmortizacije.Text;
+            item.metodaAmortizacije = inputMetodaAmortizacije.Items[inputMetodaAmortizacije.SelectedIndex].ToString();
             item.poreskeGrupe = inputPoreskeGrupe.Text;
             parseOK = int.TryParse(inputBrojPoNabavci.Text, out tempInt);
             item.brojPoNabavci = tempInt;
@@ -119,7 +125,7 @@ namespace OsnovnaSredstva
                 clearInput(tblInput);
                 showSuccessMessage("OS uspjesno sačuvano u bazu");
             }
-
+            inputInventurniBroj.Focus();
         }
 
         private void inputNaziv_TextChanged(object sender, EventArgs e)
@@ -291,72 +297,7 @@ namespace OsnovnaSredstva
             */
         }
 
-        private void btnCSV_Click(object sender, EventArgs e)
-        {
-            //System.IO.StreamWriter file = new System.IO.StreamWriter(@"items.csv", false);
-            System.IO.StreamWriter file;
-
-            //System.Web.HttpContext.Current.Response.Write("Some Text");
-            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-            saveFileDialog1.Filter = "Comma separated values|*.csv";
-            saveFileDialog1.Title = "Save an CSV File";
-            saveFileDialog1.DefaultExt = "csv";
-            DialogResult? result = saveFileDialog1.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                System.IO.Stream dlgstream;
-                if ((dlgstream = saveFileDialog1.OpenFile()) != null)
-                {
-
-                    file = new System.IO.StreamWriter(dlgstream);
-
-                    //System.IO.StreamWriter file = new System.IO.StreamWriter(Response.OutputStream, Encoding.UTF8);
-
-                    //Console.WriteLine(OSUtil.ispravkaVrijednosti(double.Parse(inputNabavnaVrednost.Text), DateTime.ParseExact("2017-05-30", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture), double.Parse(inputStopaAmortizacije.Text)));
-                    List<OSItem> itemsForList = DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(DateTime.ParseExact("27.07.2016.", "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture)).items;
-
-
-
-                    Type myType = typeof(OSItem);
-                    IList<PropertyInfo> props = new List<PropertyInfo>(myType.GetProperties());
-                    Console.WriteLine(props.Count);
-                    //dgvPregled.ColumnCount = props.Count;
-                    for (int i = 0; i < props.Count; i++)
-                    {
-                        //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
-                        //object propValue = prop.GetValue(myObject, null);
-                        //dgvPregled.Columns[i].Name = props.ElementAt(i).Name;
-                        //file.Write( props.ElementAt(i).Name + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                        file.Write(OSUtil.columnNames[props.ElementAt(i).Name] + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                        // Do something with propValue
-                    }
-
-                    foreach (OSItem item in itemsForList)
-                    {
-                        List<string> row = new List<string>();
-                        for (int i = 0; i < props.Count; i++)
-                        {
-                            if (props.ElementAt(i).Name.StartsWith("datum"))
-                            {
-                                //row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy."));
-                                file.Write(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy.") + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                            }
-                            else
-                            {
-                                //row.Add(props.ElementAt(i).GetValue(item, null).ToString());
-                                file.Write(props.ElementAt(i).GetValue(item, null).ToString() + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                            }
-                            //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
-                            //object propValue = prop.GetValue(myObject, null);
-
-                            // Do something with propValue
-                        }
-                        //dgvPregled.Rows.Add(row.ToArray());
-                    }
-                    file.Close();
-                }
-            }
-        }
+        
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -372,6 +313,7 @@ namespace OsnovnaSredstva
             else
             {
                 this.Show();
+                inputInventurniBroj.Focus();
             }
         }
 
@@ -411,6 +353,22 @@ namespace OsnovnaSredstva
             }
         }
 
+        public void addTabOnEnterPressToChildComponents(Control control)
+        {
+
+            var controls = control.Controls;
+            foreach (Control c in controls)
+            {
+                Console.WriteLine("Name: " + c.Name);
+                addTabOnEnterPressToChildComponents(c);
+                if (c.Name.StartsWith("input"))
+                {
+                    c.KeyPress += Control_KeyPress;
+                }
+                
+            }
+        }
+
         private static void messageHideTimer(Label lblMsg, double afterMiliseconds)
         {
             lblMessageHolderForTimer = lblMsg;
@@ -434,6 +392,17 @@ namespace OsnovnaSredstva
             
         }
 
-        
+        private void Control_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            Console.WriteLine("Pressed");
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                btnSnimiti.PerformClick();
+                e.Handled = true;
+            }
+        }
+
+
+
     }
 }

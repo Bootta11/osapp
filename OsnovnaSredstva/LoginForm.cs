@@ -106,17 +106,21 @@ namespace OsnovnaSredstva
 
         private void inputLozinka_KeyPress(object sender, KeyPressEventArgs e)
         {
+            
             if (e.KeyChar == (char)Keys.Enter)
             {
                 btnLogin.PerformClick();
+                e.Handled = true;
             }
         }
 
         private void inputKorisnickoIme_KeyPress(object sender, KeyPressEventArgs e)
         {
+            
             if (e.KeyChar == (char)Keys.Enter)
             {
                 inputLozinka.Focus();
+                e.Handled = true;
             }
         }
     }

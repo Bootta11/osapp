@@ -148,7 +148,7 @@ namespace OsnovnaSredstva
                     if (count == 0)
                     {
                         int daysInYear = DateTime.IsLeapYear(currDate.Year) ? 366 : 365;
-                        int daysLeftInYear = daysInYear - amortizacijeDate.DayOfYear; // Result is in range 0-365.
+                        int daysLeftInYear = daysInYear - datumVrijednosti.DayOfYear; // Result is in range 0-365.
                         step = (Math.Round((nabavnaVrijednost * (stopaAmortizacije / 100) / daysInYear), 4) * (daysLeftInYear));
                         ret = step;
                         sadasnjaVrijednost -= step;
@@ -168,7 +168,7 @@ namespace OsnovnaSredstva
             else
             {
                 int daysInYear = DateTime.IsLeapYear(currDate.Year) ? 366 : 365;
-                ret = (Math.Round(((nabavnaVrijednost * (stopaAmortizacije / 100)) / daysInYear), 4) * (Math.Floor((currDate - amortizacijeDate).TotalDays)));
+                ret = (Math.Round(((nabavnaVrijednost * (stopaAmortizacije / 100)) / daysInYear), 4) * (Math.Floor((currDate - datumVrijednosti).TotalDays)));
             }
             //ret = Math.Round(ret, 3);
 

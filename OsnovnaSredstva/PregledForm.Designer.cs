@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.btnXLS = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.btnDodajFilter = new System.Windows.Forms.Button();
             this.btnIzbrisiFiltere = new System.Windows.Forms.Button();
@@ -44,8 +45,7 @@
             this.brnKreirajCSV = new System.Windows.Forms.Button();
             this.btnPrint = new System.Windows.Forms.Button();
             this.dgvPregled = new System.Windows.Forms.DataGridView();
-            this.btnXLS = new System.Windows.Forms.Button();
-            this.btnPrintTest = new System.Windows.Forms.Button();
+            this.btnIzmijeniti = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -66,7 +66,7 @@
             // 
             // splitContainer1.Panel1
             // 
-            this.splitContainer1.Panel1.Controls.Add(this.btnPrintTest);
+            this.splitContainer1.Panel1.Controls.Add(this.btnIzmijeniti);
             this.splitContainer1.Panel1.Controls.Add(this.btnXLS);
             this.splitContainer1.Panel1.Controls.Add(this.groupBox1);
             this.splitContainer1.Panel1.Controls.Add(this.dtAmortizacije);
@@ -84,6 +84,16 @@
             this.splitContainer1.SplitterDistance = 114;
             this.splitContainer1.TabIndex = 0;
             // 
+            // btnXLS
+            // 
+            this.btnXLS.Location = new System.Drawing.Point(371, 4);
+            this.btnXLS.Name = "btnXLS";
+            this.btnXLS.Size = new System.Drawing.Size(75, 23);
+            this.btnXLS.TabIndex = 14;
+            this.btnXLS.Text = "Kreiraj Excel";
+            this.btnXLS.UseVisualStyleBackColor = true;
+            this.btnXLS.Click += new System.EventHandler(this.btnXLS_Click);
+            // 
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.btnDodajFilter);
@@ -95,7 +105,7 @@
             this.groupBox1.Controls.Add(this.inputSearchValue);
             this.groupBox1.Controls.Add(this.cbCondition);
             this.groupBox1.Controls.Add(this.cbFieldName);
-            this.groupBox1.Location = new System.Drawing.Point(3, 32);
+            this.groupBox1.Location = new System.Drawing.Point(84, 39);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(531, 72);
             this.groupBox1.TabIndex = 13;
@@ -114,7 +124,7 @@
             // 
             // btnIzbrisiFiltere
             // 
-            this.btnIzbrisiFiltere.Location = new System.Drawing.Point(366, 44);
+            this.btnIzbrisiFiltere.Location = new System.Drawing.Point(366, 43);
             this.btnIzbrisiFiltere.Name = "btnIzbrisiFiltere";
             this.btnIzbrisiFiltere.Size = new System.Drawing.Size(75, 23);
             this.btnIzbrisiFiltere.TabIndex = 17;
@@ -192,7 +202,7 @@
             this.dtAmortizacije.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
             this.dtAmortizacije.Location = new System.Drawing.Point(105, 6);
             this.dtAmortizacije.Name = "dtAmortizacije";
-            this.dtAmortizacije.Size = new System.Drawing.Size(98, 20);
+            this.dtAmortizacije.Size = new System.Drawing.Size(90, 20);
             this.dtAmortizacije.TabIndex = 12;
             this.dtAmortizacije.ValueChanged += new System.EventHandler(this.dtAmortizacije_ValueChanged);
             // 
@@ -239,24 +249,15 @@
             this.dgvPregled.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPregled_CellValueChanged);
             this.dgvPregled.UserDeletingRow += new System.Windows.Forms.DataGridViewRowCancelEventHandler(this.dgvPregled_UserDeletingRow);
             // 
-            // btnXLS
+            // btnIzmijeniti
             // 
-            this.btnXLS.Location = new System.Drawing.Point(371, 4);
-            this.btnXLS.Name = "btnXLS";
-            this.btnXLS.Size = new System.Drawing.Size(75, 23);
-            this.btnXLS.TabIndex = 14;
-            this.btnXLS.Text = "Kreiraj Excel";
-            this.btnXLS.UseVisualStyleBackColor = true;
-            this.btnXLS.Click += new System.EventHandler(this.btnXLS_Click);
-            // 
-            // btnPrintTest
-            // 
-            this.btnPrintTest.Location = new System.Drawing.Point(452, 3);
-            this.btnPrintTest.Name = "btnPrintTest";
-            this.btnPrintTest.Size = new System.Drawing.Size(75, 23);
-            this.btnPrintTest.TabIndex = 15;
-            this.btnPrintTest.Text = "PrintTest";
-            this.btnPrintTest.UseVisualStyleBackColor = true;
+            this.btnIzmijeniti.Enabled = false;
+            this.btnIzmijeniti.Location = new System.Drawing.Point(3, 89);
+            this.btnIzmijeniti.Name = "btnIzmijeniti";
+            this.btnIzmijeniti.Size = new System.Drawing.Size(75, 23);
+            this.btnIzmijeniti.TabIndex = 2;
+            this.btnIzmijeniti.Text = "Izmijeniti";
+            this.btnIzmijeniti.UseVisualStyleBackColor = true;
             // 
             // PregledForm
             // 
@@ -297,6 +298,6 @@
         private System.Windows.Forms.ComboBox cbCondition;
         private System.Windows.Forms.ComboBox cbFieldName;
         private System.Windows.Forms.Button btnXLS;
-        private System.Windows.Forms.Button btnPrintTest;
+        private System.Windows.Forms.Button btnIzmijeniti;
     }
 }

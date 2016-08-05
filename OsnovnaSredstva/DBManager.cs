@@ -435,7 +435,7 @@ namespace OsnovnaSredstva
 
 
                 item.vrijednostNaDatum = double.Parse(reader["vr_na_datum_amortizacije"].ToString());
-                if (!lwf.fieldMaxLength.ContainsKey("vrijednostNaDatum")) lwf.fieldMaxLength.Add("vrijednostNaDatumAmortizacije", OSUtil.columnNames["vrijednostNaDatum"]);
+                if (!lwf.fieldMaxLength.ContainsKey("vrijednostNaDatum")) lwf.fieldMaxLength.Add("vrijednostNaDatum", OSUtil.columnNames["vrijednostNaDatum"]);
                 if (lwf.fieldMaxLength["vrijednostNaDatum"].Length < item.vrijednostNaDatum.ToString().Length) lwf.fieldMaxLength["vrijednostNaDatum"] = item.vrijednostNaDatum.ToString();
 
                 item.vek = double.Parse(reader["vek"].ToString());

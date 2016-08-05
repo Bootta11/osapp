@@ -81,6 +81,13 @@ namespace OsnovnaSredstva
                     {
                         row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy."));
                     }
+                    else if (props.ElementAt(i).Name.StartsWith("vrijednostNaDatum"))
+                    {
+                        if (props.ElementAt(i).GetValue(item, null).ToString() == "-1")
+                            row.Add("");
+                        else
+                            row.Add(props.ElementAt(i).GetValue(item, null).ToString());
+                    }
                     else
                     {
                         row.Add(props.ElementAt(i).GetValue(item, null).ToString());
@@ -607,7 +614,7 @@ namespace OsnovnaSredstva
                 if ((dlgstream = saveFileDialog1.OpenFile()) != null)
                 {
 
-                    if (saveFileDialog1.FilterIndex == 2)
+                    if (saveFileDialog1.FilterIndex == 1)
                     {
                         int rowcount = 0;
                         wb = HSSFWorkbook.Create(InternalWorkbook.CreateWorkbook());
