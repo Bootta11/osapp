@@ -31,6 +31,7 @@ namespace OsnovnaSredstva
             if (loginresult)
             {
                 this.DialogResult = DialogResult.OK;
+                Form1.setKorisnik(inputKorisnickoIme.Text.Trim());
             }else
             {
                 showErrorMessage("Error: Korisnicko ime ili lozinka nisu validni");

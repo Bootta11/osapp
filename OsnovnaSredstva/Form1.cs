@@ -19,8 +19,16 @@ namespace OsnovnaSredstva
 {
     public partial class Form1 : Form
     {
-        static Form staticForm ;
+        public static Form staticForm;
         static Label lblMessageHolderForTimer = null;
+        string izmijenitiItemId = null;
+        static string korisnik = "";
+        public static CultureInfo culture;
+
+        public static void setKorisnik(string k)
+        {
+            korisnik = k;
+        }
         public Form1()
         {
             InitializeComponent();
@@ -31,7 +39,7 @@ namespace OsnovnaSredstva
             AppSettingsReader settings = new AppSettingsReader();
             string strculture = (string)settings.GetValue("DefaultCulture", typeof(string));
             Console.WriteLine(strculture);
-            CultureInfo culture = new CultureInfo(strculture);
+            culture = new CultureInfo(strculture);
             Thread.CurrentThread.CurrentCulture = culture;
             Thread.CurrentThread.CurrentUICulture = culture;
             lblMessage.Text = "";
@@ -46,10 +54,11 @@ namespace OsnovnaSredstva
             inputVek.LostFocus += textbox_OnlyNumbersAndDecimal;
             inputBrojPoNabavci.LostFocus += textbox_OnlyNumbers;
             //Controls.SetChildIndex(pictureBox1, 0);
-            
+
             staticForm = this;
             addTabOnEnterPressToChildComponents(tblInput);
-            inputMetodaAmortizacije.Items.Insert(0, "linearna");
+            inputMetodaAmortizacije.Items.Insert(0, "Linearna");
+            changeFontOfChildLabels(tblInput, new Font(label1.Font.FontFamily, (float)8));
             inputInventurniBroj.Focus();
         }
 
@@ -60,67 +69,163 @@ namespace OsnovnaSredstva
 
         private void btnSnimiti_Click(object sender, EventArgs e)
         {
+            List<string> errorMsgs = new List<string>();
             bool parseOK = true;
+            bool requiredFiledsOK = true;
             double temp = 0;
             int tempInt = 0;
             OSItem item = new OSItem();
-            item.inventurniBroj = inputInventurniBroj.Text;
+            if (izmijenitiItemId != null)
+                item.id = izmijenitiItemId;
+            if (inputInventurniBroj.Text.Length == 0)
+            {
+                errorMsgs.Add("Nije unijet inventurni broj"); requiredFiledsOK = false;
+            }
+            else
+                item.inventurniBroj = inputInventurniBroj.Text;
+
             item.naziv = inputNaziv.Text;
 
-            parseOK = double.TryParse(inputKolicina.Text, out temp);
+            if (!double.TryParse(inputKolicina.Text.Replace('.', ','), out temp))
+            {
+                parseOK = false;
+
+            }
             item.kolicina = temp;
             temp = 0;
             item.datumNabavke = inputDatumNabavke.Text;
 
-            parseOK = double.TryParse(inputNabavnaVrednost.Text, out temp);
+
+            if (!double.TryParse(inputNabavnaVrednost.Text.Replace('.', ','), out temp))
+            {
+                parseOK = false;
+                requiredFiledsOK = false;
+                errorMsgs.Add("Nije unijeta nabavna vrijednost");
+            }
             item.nabavnaVrijednost = temp;
             temp = 0;
-            item.konto = inputKonto.Text;
+            if (inputKonto.Text.Length < 1)
+            {
+                requiredFiledsOK = false;
+                errorMsgs.Add("Nije unijet konto");
+            }
+            else
+                item.konto = inputKonto.Text;
             item.datumAmortizacije = inputDatumAmortizacije.Text;
             item.datumVrijednosti = inputDatumVrijednosti.Text;
             //item.ispravkaVrijednosti = double.Parse(inputIspravkaVrijednosti.Text);
-            parseOK = double.TryParse(inputVek.Text, out temp);
+
+            if (!double.TryParse(inputVek.Text.Replace('.', ','), out temp))
+            {
+                parseOK = false;
+
+            }
             item.vek = temp;
             temp = 0;
             item.datumOtpisa = inputDatumOtpisa.Text;
-            parseOK = double.TryParse(inputVrijednostNaDatumAmortizacije.Text, out temp);
-            item.vrijednostNaDatum = temp;
+
+            if (!double.TryParse(inputVrijednostNaDatumAmortizacije.Text.Replace('.', ','), out temp))
+            {
+                parseOK = false;
+                item.vrijednostNaDatum = -1;
+            }
+            else
+                item.vrijednostNaDatum = temp;
             item.jedinicaMjere = inputjednicaMjere.Text;
+            if (inputDobavljac.Text.Length < 1)
+            {
+                requiredFiledsOK = false;
+                errorMsgs.Add("Nije unijet dobavljac");
+            }
             item.dobavljac = inputDobavljac.Text;
             item.racunDobavljaca = inputRacunDokDobavljaca.Text;
             item.racunopolagac = inputRacunopolagac.Text;
             item.lokacija = inputLokacija.Text;
             item.smjestaj = inputSmjestaj.Text;
-            item.metodaAmortizacije = inputMetodaAmortizacije.Items[inputMetodaAmortizacije.SelectedIndex].ToString();
+            try
+            {
+                if (inputMetodaAmortizacije.SelectedIndex == -1)
+                {
+                    requiredFiledsOK = false;
+                    errorMsgs.Add("Nije unet metod amortizacije");
+                }
+                else
+                    item.metodaAmortizacije = inputMetodaAmortizacije.Items[inputMetodaAmortizacije.SelectedIndex].ToString();
+
+            }
+            catch (Exception ex)
+            {
+                parseOK = false;
+            }
             item.poreskeGrupe = inputPoreskeGrupe.Text;
             parseOK = int.TryParse(inputBrojPoNabavci.Text, out tempInt);
-            item.brojPoNabavci = tempInt;
+            if (!int.TryParse(inputBrojPoNabavci.Text, out tempInt))
+            {
+                parseOK = false;
+                requiredFiledsOK = false;
+                errorMsgs.Add("Nije unet broj po nabavci");
+            }
+            else
+                item.brojPoNabavci = tempInt;
             tempInt = 0;
             item.amortizacionaGrupa = inputAmortizacijaGrupe.Text;
-            parseOK = double.TryParse(inputStopaAmortizacije.Text, out temp);
-            item.stopaAmortizacije = temp;
+            AppSettingsReader settings = new AppSettingsReader();
+            string strculture = (string)settings.GetValue("DefaultCulture", typeof(string));
+            CultureInfo culture = new CultureInfo(strculture);
+
+            if (!double.TryParse(inputStopaAmortizacije.Text.Replace('.',','), NumberStyles.Any, culture, out temp))
+            {
+                parseOK = false;
+                requiredFiledsOK = false;
+                errorMsgs.Add("Nije unijeta stopa amortizacije");
+            }
+            else
+                item.stopaAmortizacije = temp;
             temp = 0;
             item.active = "active";
 
-            string msg = "";
-            if (parseOK)
+            SQLiteErrorCode msg = SQLiteErrorCode.Ok;
+            if (requiredFiledsOK)
             {
                 msg = DBManager.insertOS(item);
 
             }
             else
             {
-                showErrorMessage("Nisu unijeti validni podaci");
+                showErrorMessage("Error: " + errorMsgs.First());
                 return;
             }
 
-            if (!msg.Equals(""))
+            if (msg != SQLiteErrorCode.Ok)
             {
-                showErrorMessage("Error: Nije moguce unijeti novo OS");
+                if (msg == SQLiteErrorCode.Constraint)
+                {
+                    if (MessageBox.Show("OS sa unesenim inventurnim brojem već postoji. Želite li da snimite izmjene na postojećem OS?", "Izmjeniti OS?", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    {
+                        SQLiteErrorCode result = DBManager.UpdateItem(item);
+                        if (result == SQLiteErrorCode.Ok)
+                        {
+                            izmijenitiItemId = null;
+                            clearInput(tblInput);
+                            showSuccessMessage("OS sa inventurnim brojem " + item.inventurniBroj + " je izmjenjeno");
+                            //showErrorMessage("OS sa inventurnim brojem " + item.inventurniBroj + "je izmjenjeno");
+                        }
+                    }
+                    else
+                    {
+                        showErrorMessage("Error: Nije moguce unijeti novo OS sa postojećim inventurnim brojem");
+                    }
+                }
+                else if (msg == SQLiteErrorCode.NotFound)
+                {
+                    showErrorMessage("Error: OS nije izmijenjen");
+                }
+                else
+                    showErrorMessage("Error: Nije moguce unijeti novo OS");
             }
             else
             {
-                
+
 
                 clearInput(tblInput);
                 showSuccessMessage("OS uspjesno sačuvano u bazu");
@@ -144,7 +249,7 @@ namespace OsnovnaSredstva
         {
             Console.WriteLine(inputDatumNabavke.Text);
             inputDatumAmortizacije.MinDate = inputDatumNabavke.Value;
-            
+
             inputDatumOtpisa.MinDate = inputDatumNabavke.Value;
             //CalculateIspravkaVrijednostiSadasnjaVrijednost();
         }
@@ -167,8 +272,8 @@ namespace OsnovnaSredstva
         {
             try
             {
-                DateTime dtDatumOtpisa = DateTime.ParseExact(inputDatumOtpisa.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture);
-                DateTime dtamortizacije = DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture);
+                DateTime dtDatumOtpisa = DateTime.ParseExact(inputDatumOtpisa.Text, "dd.MM.yyyy.", culture);
+                DateTime dtamortizacije = DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", culture);
                 DateTime dtNow = DateTime.Now;
                 Console.WriteLine(dtDatumOtpisa + " - " + dtamortizacije);
                 double daysDiff = Math.Floor((dtNow - dtamortizacije).TotalDays);
@@ -246,7 +351,7 @@ namespace OsnovnaSredstva
 
         private void btnPregled_Click_1(object sender, EventArgs e)
         {
-            PregledForm pregled = new PregledForm();
+            PregledForm pregled = new PregledForm(this);
             pregled.ShowDialog();
 
         }
@@ -297,7 +402,7 @@ namespace OsnovnaSredstva
             */
         }
 
-        
+
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -314,6 +419,7 @@ namespace OsnovnaSredstva
             {
                 this.Show();
                 inputInventurniBroj.Focus();
+                lblKorisnik.Text = "Korisnik: " + korisnik;
             }
         }
 
@@ -347,8 +453,10 @@ namespace OsnovnaSredstva
                 }
                 else if (c.GetType() == typeof(TextBox))
                 {
+
                     TextBox tb = (TextBox)c;
-                    tb.Text = "";
+                    if (tb.Name != lblMessage.Name)
+                        tb.Text = "";
                 }
             }
         }
@@ -365,7 +473,7 @@ namespace OsnovnaSredstva
                 {
                     c.KeyPress += Control_KeyPress;
                 }
-                
+
             }
         }
 
@@ -384,12 +492,13 @@ namespace OsnovnaSredstva
         {
             System.Timers.Timer timer = (System.Timers.Timer)source;
             timer.Enabled = false;
-            staticForm.Invoke((MethodInvoker)delegate {
+            staticForm.Invoke((MethodInvoker)delegate
+            {
 
                 lblMessageHolderForTimer.Visible = false; // runs on UI thread
             });
             //lblMessageHolderForTimer.Visible = false;
-            
+
         }
 
         private void Control_KeyPress(object sender, KeyPressEventArgs e)
@@ -402,7 +511,55 @@ namespace OsnovnaSredstva
             }
         }
 
+        public void FillInputForm(OSItem item)
+        {
+            CultureInfo provider = culture;
+            izmijenitiItemId = item.id;
+            inputInventurniBroj.Text = item.inventurniBroj;
+            inputNaziv.Text = item.naziv;
+            inputKolicina.Text = item.kolicina.ToString();
+            inputNabavnaVrednost.Text = item.nabavnaVrijednost.ToString();
+            inputKonto.Text = item.konto;
+            inputVrijednostNaDatumAmortizacije.Text = item.vrijednostNaDatum < 0 ? "" : item.vrijednostNaDatum.ToString();
+            inputjednicaMjere.Text = item.jedinicaMjere;
+            inputVek.Text = item.vek.ToString();
+            inputDobavljac.Text = item.dobavljac;
+            inputDobavljac.Text = item.dobavljac;
+            inputRacunopolagac.Text = item.racunopolagac;
+            inputLokacija.Text = item.lokacija;
+            inputSmjestaj.Text = item.smjestaj;
+            inputMetodaAmortizacije.SelectedIndex = inputMetodaAmortizacije.Items.IndexOf(item.metodaAmortizacije);
+            inputPoreskeGrupe.Text = item.poreskeGrupe;
+            inputAmortizacijaGrupe.Text = item.amortizacionaGrupa;
+            inputBrojPoNabavci.Text = item.brojPoNabavci.ToString();
+            inputStopaAmortizacije.Text = item.stopaAmortizacije.ToString();
+            inputDatumNabavke.Value = DateTime.ParseExact(item.datumNabavke, "dd.MM.yyyy.", provider);
+            inputDatumAmortizacije.Value = DateTime.ParseExact(item.datumAmortizacije, "dd.MM.yyyy.", provider);
+            inputDatumOtpisa.Value = DateTime.ParseExact(item.datumOtpisa, "dd.MM.yyyy.", provider);
+            inputDatumVrijednosti.Value = DateTime.ParseExact(item.datumVrijednosti, "dd.MM.yyyy.", provider);
+        }
 
+        public void changeFontOfChildLabels(Control control, Font font)
+        {
 
+            var controls = control.Controls;
+            foreach (Control c in controls)
+            {
+                Console.WriteLine("Name: " + c.Name);
+                changeFontOfChildLabels(c, font);
+                if (c.GetType() == typeof(Label))
+                {
+                    Label lbl = (Label)c;
+
+                    lbl.Font = font;
+                }
+
+            }
+        }
+
+        private void btnOcistitiUnose_Click(object sender, EventArgs e)
+        {
+            clearInput(tblInput);
+        }
     }
 }

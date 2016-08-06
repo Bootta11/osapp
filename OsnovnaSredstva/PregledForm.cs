@@ -26,8 +26,11 @@ namespace OsnovnaSredstva
         Guid lastSearchFcvListID, fcvListId;
         Font font = new Font("Arial", 8);
         bool notPrintPreviewed, notPrinted;
+        DataGridViewRow dgvSelectedRow = null;
+        OSItem itemZaIzmjeniti = null;
+        public Form1 inputForma = null;
 
-        public PregledForm()
+        public PregledForm(Form1 inputForm)
         {
             InitializeComponent();
 
@@ -54,6 +57,8 @@ namespace OsnovnaSredstva
             FillGridView(itemsForList);
             lastSearchFcvListID = Guid.NewGuid();
             fcvListId = lastSearchFcvListID;
+            inputForma = inputForm;
+
         }
 
         public void FillGridView(ListWithFieldMaxLengths itemslist)
@@ -79,7 +84,7 @@ namespace OsnovnaSredstva
                 {
                     if (props.ElementAt(i).Name.StartsWith("datum"))
                     {
-                        row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy."));
+                        row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy."));
                     }
                     else if (props.ElementAt(i).Name.StartsWith("vrijednostNaDatum"))
                     {
@@ -90,7 +95,12 @@ namespace OsnovnaSredstva
                     }
                     else
                     {
-                        row.Add(props.ElementAt(i).GetValue(item, null).ToString());
+                        if (props.ElementAt(i).PropertyType == typeof(double)) {
+                            string str = ((double)props.ElementAt(i).GetValue(item, null)).ToString("0.000");
+                            row.Add(str);
+                        }
+                        else
+                            row.Add(props.ElementAt(i).GetValue(item, null).ToString());
 
                     }
                     //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
@@ -99,6 +109,7 @@ namespace OsnovnaSredstva
                     // Do something with propValue
                 }
                 dgvPregled.Rows.Add(row.ToArray());
+                dgvPregled.Refresh();
             }
         }
 
@@ -254,7 +265,7 @@ namespace OsnovnaSredstva
 
 
                     if (cname.Equals("#")) { maxStringSize = e.Graphics.MeasureString((itemsForList.items.Count).ToString().Length > OSUtil.columnNames[cname].Length ? (itemsForList.items.Count).ToString() : OSUtil.columnNames[cname], font); maxStringSize.Width += 2; }
-                    else if (cname.StartsWith("datum")) maxStringSize = e.Graphics.MeasureString(DateTime.ParseExact(prop.GetValue(itemsForList.items[itemPrintNum]).ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture).ToString("dd.MM.yyyy") + "", font);
+                    else if (cname.StartsWith("datum")) maxStringSize = e.Graphics.MeasureString(DateTime.ParseExact(prop.GetValue(itemsForList.items[itemPrintNum]).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy") + "", font);
                     else maxStringSize = e.Graphics.MeasureString(prop.GetValue(itemsForList.items[itemPrintNum]).ToString(), font);
 
                     if ((maxStringSize.Width - lengthsList[cname]) > 2)
@@ -287,11 +298,14 @@ namespace OsnovnaSredstva
                     }
                     else if (cname.StartsWith("datum"))
                     {
-                        graphics.DrawString(DateTime.ParseExact(prop.GetValue(itemsForList.items[itemPrintNum]).ToString(), "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture).ToString("dd.MM.yyyy") + "", font, Brushes.Black, rectf, stringDrawFormat);
+                        graphics.DrawString(DateTime.ParseExact(prop.GetValue(itemsForList.items[itemPrintNum]).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy") + "", font, Brushes.Black, rectf, stringDrawFormat);
                     }
                     else
                     {
-                        graphics.DrawString(prop.GetValue(itemsForList.items[itemPrintNum]) + "", font, Brushes.Black, rectf, stringDrawFormat);
+                        if (prop.GetValue(itemsForList.items[itemPrintNum]).GetType() == typeof(double))
+                            graphics.DrawString(((double)prop.GetValue(itemsForList.items[itemPrintNum])).ToString("0.000"), font, Brushes.Black, rectf, stringDrawFormat);
+                        else
+                            graphics.DrawString(prop.GetValue(itemsForList.items[itemPrintNum]) + "", font, Brushes.Black, rectf, stringDrawFormat);
                     }
                     //graphics.DrawString()
 
@@ -342,13 +356,23 @@ namespace OsnovnaSredstva
             {
                 if (prop.Name.ToLower().StartsWith("datum"))
                 {
-                    DateTime dt = new DateTime();
-                    update = DateTime.TryParseExact(dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), "dd.MM.yyyy.", CultureInfo.InvariantCulture, DateTimeStyles.None, out dt);
-                    prop.SetValue(item, dt.ToString("yyyy-MM-dd HH:mm:ss"), null);
+                    if (dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value != null)
+                    {
+                        DateTime dt = new DateTime();
+                        update = DateTime.TryParseExact(dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), "dd.MM.yyyy.", Form1.culture, DateTimeStyles.None, out dt);
+                        prop.SetValue(item, dt.ToString("dd.MM.yyyy."), null);
+                    }
+                    else
+                    {
+                        update = false;
+                    }
                 }
                 else
                 {
-                    prop.SetValue(item, Convert.ChangeType(dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value, prop.PropertyType), null);
+                    if (dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value != null)
+                        prop.SetValue(item, Convert.ChangeType(dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value, prop.PropertyType), null);
+                    else
+                        update = false;
                 }
             }
             if (update)
@@ -368,10 +392,7 @@ namespace OsnovnaSredstva
 
             DBManager.deleteOS((string)e.Row.Cells["id"].Value);
 
-            if (fcvlist.Count > 0)
-                FillGridView(DBManager.GetAllWithFilter(fcvlist, dtAmortizacije.Value));
-            else
-                FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(dtAmortizacije.Value));
+            
         }
 
 
@@ -431,7 +452,7 @@ namespace OsnovnaSredstva
                             if (props.ElementAt(i).Name.StartsWith("datum"))
                             {
                                 //row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy."));
-                                file.Write(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy.") + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                                file.Write(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy.") + (i < props.Count - 1 ? ";" : Environment.NewLine));
                             }
                             else
                             {
@@ -525,7 +546,7 @@ namespace OsnovnaSredstva
                         //FillGridView(DBManager.GetAllWithFilter(databaseFieldName, cond, inputDatumZaPretragu.Value.ToString("yyyy-MM-dd HH:mm:ss")));
                         fcv.condition = cond;
                         fcv.field = databaseFieldName;
-                        fcv.value = inputDatumZaPretragu.Value.ToString("yyyy-MM-dd");
+                        fcv.value = inputDatumZaPretragu.Value.ToString("yyyy-MM-dd") + " 00:00:00";
 
 
                     }
@@ -656,7 +677,7 @@ namespace OsnovnaSredstva
                                 {
                                     //row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy."));
                                     //file.Write(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy.") + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                                    cell.SetCellValue(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy."));
+                                    cell.SetCellValue(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy."));
                                 }
                                 else
                                 {
@@ -677,6 +698,58 @@ namespace OsnovnaSredstva
                     }
                 }
             }
+        }
+
+        private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+
+        }
+
+        private void dgvPregled_RowStateChanged(object sender, DataGridViewRowStateChangedEventArgs e)
+        {
+            /*
+            Console.WriteLine(e.StateChanged+ " on "+e.Row.Index);
+            if(e.StateChanged == DataGridViewElementStates.Selected)
+            {
+                dgvSelectedRow = e.Row;
+                btnIzmijeniti.Enabled = true;
+            }else
+            {
+                btnIzmijeniti.Enabled = false;
+            }
+            */
+        }
+
+        private void dgvPregled_RowEnter(object sender, DataGridViewCellEventArgs e)
+        {
+            Console.WriteLine("Row enter "+e.RowIndex);
+            DataGridView dgv = (DataGridView)sender;
+
+
+            OSItem item = DBManager.GetItem(dgv.Rows[e.RowIndex].Cells["id"].Value.ToString());
+            Console.WriteLine(item);
+            itemZaIzmjeniti = item;
+            btnIzmijeniti.Enabled = true;
+        }
+
+        private void dgvPregled_RowLeave(object sender, DataGridViewCellEventArgs e)
+        {
+            Console.WriteLine("Row leave");
+
+        }
+
+        private void btnIzmijeniti_Click(object sender, EventArgs e)
+        {
+            inputForma.FillInputForm(itemZaIzmjeniti);
+            this.Close();
+        }
+
+        private void dgvPregled_UserDeletedRow(object sender, DataGridViewRowEventArgs e)
+        {
+            if (fcvlist.Count > 0)
+                FillGridView(DBManager.GetAllWithFilter(fcvlist, dtAmortizacije.Value));
+            else
+                FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(dtAmortizacije.Value));
         }
 
         private void btnSearch_Click_1(object sender, EventArgs e)

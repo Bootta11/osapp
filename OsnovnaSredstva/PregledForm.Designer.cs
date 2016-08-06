@@ -28,7 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PregledForm));
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.btnIzmijeniti = new System.Windows.Forms.Button();
             this.btnXLS = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.btnDodajFilter = new System.Windows.Forms.Button();
@@ -45,7 +47,6 @@
             this.brnKreirajCSV = new System.Windows.Forms.Button();
             this.btnPrint = new System.Windows.Forms.Button();
             this.dgvPregled = new System.Windows.Forms.DataGridView();
-            this.btnIzmijeniti = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -66,6 +67,7 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.BackgroundImage = global::OsnovnaSredstva.Properties.Resources.wov;
             this.splitContainer1.Panel1.Controls.Add(this.btnIzmijeniti);
             this.splitContainer1.Panel1.Controls.Add(this.btnXLS);
             this.splitContainer1.Panel1.Controls.Add(this.groupBox1);
@@ -81,8 +83,20 @@
             this.splitContainer1.Panel2.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.splitContainer1.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.splitContainer1.Size = new System.Drawing.Size(904, 464);
-            this.splitContainer1.SplitterDistance = 114;
+            this.splitContainer1.SplitterDistance = 142;
             this.splitContainer1.TabIndex = 0;
+            this.splitContainer1.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer1_SplitterMoved);
+            // 
+            // btnIzmijeniti
+            // 
+            this.btnIzmijeniti.Enabled = false;
+            this.btnIzmijeniti.Location = new System.Drawing.Point(12, 113);
+            this.btnIzmijeniti.Name = "btnIzmijeniti";
+            this.btnIzmijeniti.Size = new System.Drawing.Size(75, 23);
+            this.btnIzmijeniti.TabIndex = 2;
+            this.btnIzmijeniti.Text = "Izmijeniti";
+            this.btnIzmijeniti.UseVisualStyleBackColor = true;
+            this.btnIzmijeniti.Click += new System.EventHandler(this.btnIzmijeniti_Click);
             // 
             // btnXLS
             // 
@@ -96,6 +110,7 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.BackgroundImage = global::OsnovnaSredstva.Properties.Resources.wov;
             this.groupBox1.Controls.Add(this.btnDodajFilter);
             this.groupBox1.Controls.Add(this.btnIzbrisiFiltere);
             this.groupBox1.Controls.Add(this.cbActiveFilters);
@@ -105,7 +120,7 @@
             this.groupBox1.Controls.Add(this.inputSearchValue);
             this.groupBox1.Controls.Add(this.cbCondition);
             this.groupBox1.Controls.Add(this.cbFieldName);
-            this.groupBox1.Location = new System.Drawing.Point(84, 39);
+            this.groupBox1.Location = new System.Drawing.Point(12, 35);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(531, 72);
             this.groupBox1.TabIndex = 13;
@@ -146,6 +161,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
+            this.label1.BackColor = System.Drawing.Color.Transparent;
             this.label1.Location = new System.Drawing.Point(30, 49);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(97, 13);
@@ -200,7 +216,7 @@
             // 
             this.dtAmortizacije.CustomFormat = "dd.MM.yyyy.";
             this.dtAmortizacije.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtAmortizacije.Location = new System.Drawing.Point(105, 6);
+            this.dtAmortizacije.Location = new System.Drawing.Point(113, 7);
             this.dtAmortizacije.Name = "dtAmortizacije";
             this.dtAmortizacije.Size = new System.Drawing.Size(90, 20);
             this.dtAmortizacije.TabIndex = 12;
@@ -209,7 +225,8 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(3, 9);
+            this.label2.BackColor = System.Drawing.Color.Transparent;
+            this.label2.Location = new System.Drawing.Point(12, 9);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(96, 13);
             this.label2.TabIndex = 11;
@@ -237,6 +254,7 @@
             // 
             // dgvPregled
             // 
+            this.dgvPregled.AllowUserToAddRows = false;
             this.dgvPregled.AllowUserToOrderColumns = true;
             this.dgvPregled.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
             this.dgvPregled.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
@@ -244,28 +262,25 @@
             this.dgvPregled.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgvPregled.Location = new System.Drawing.Point(0, 0);
             this.dgvPregled.Name = "dgvPregled";
-            this.dgvPregled.Size = new System.Drawing.Size(904, 346);
+            this.dgvPregled.Size = new System.Drawing.Size(904, 318);
             this.dgvPregled.TabIndex = 1;
             this.dgvPregled.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPregled_CellValueChanged);
+            this.dgvPregled.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPregled_RowEnter);
+            this.dgvPregled.RowLeave += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPregled_RowLeave);
+            this.dgvPregled.RowStateChanged += new System.Windows.Forms.DataGridViewRowStateChangedEventHandler(this.dgvPregled_RowStateChanged);
+            this.dgvPregled.UserDeletedRow += new System.Windows.Forms.DataGridViewRowEventHandler(this.dgvPregled_UserDeletedRow);
             this.dgvPregled.UserDeletingRow += new System.Windows.Forms.DataGridViewRowCancelEventHandler(this.dgvPregled_UserDeletingRow);
-            // 
-            // btnIzmijeniti
-            // 
-            this.btnIzmijeniti.Enabled = false;
-            this.btnIzmijeniti.Location = new System.Drawing.Point(3, 89);
-            this.btnIzmijeniti.Name = "btnIzmijeniti";
-            this.btnIzmijeniti.Size = new System.Drawing.Size(75, 23);
-            this.btnIzmijeniti.TabIndex = 2;
-            this.btnIzmijeniti.Text = "Izmijeniti";
-            this.btnIzmijeniti.UseVisualStyleBackColor = true;
             // 
             // PregledForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(224)))), ((int)(((byte)(192)))));
             this.ClientSize = new System.Drawing.Size(904, 464);
             this.Controls.Add(this.splitContainer1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "PregledForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "PregledForm";
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel1.PerformLayout();

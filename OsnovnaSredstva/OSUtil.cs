@@ -22,7 +22,7 @@ namespace OsnovnaSredstva
             { "datumNabavke", "Datum nabavke"},
             { "datumAmortizacije", "Datum amortizacije"},
             { "datumVrijednosti", "Datum vrijednosti"},
-            { "vrijednostNaDatum","Vr. na datum amortizacije" },
+            { "vrijednostNaDatum","Vr. na datum" },
             { "nabavnaVrijednost", "Nabavna vrijednost"},
             { "ispravkaVrijednosti", "Ispravka vrijednosti"},
             { "sadasnjaVrijednost", "Sadašnja vrijednost"},
@@ -141,10 +141,11 @@ namespace OsnovnaSredstva
             if (yearDiff > 0)
             {
                 int count = 0;
-
+                
 
                 while (count < yearDiff)
                 {
+                    currDate =  new DateTime(amortizacijeDate.Year+count, currDate.Month, currDate.Day, 0, 0, 0); ;
                     if (count == 0)
                     {
                         int daysInYear = DateTime.IsLeapYear(currDate.Year) ? 366 : 365;
@@ -161,6 +162,7 @@ namespace OsnovnaSredstva
                     }
                     count++;
                 }
+                currDate = new DateTime(amortizacijeDate.Year + count, currDate.Month, currDate.Day, 0, 0, 0);
                 int daysInCurrentYear = DateTime.IsLeapYear(currDate.Year) ? 366 : 365;
                 step = (Math.Round((nabavnaVrijednost * (stopaAmortizacije / 100) / daysInCurrentYear), 4) * currDate.DayOfYear);
                 ret += step;
