@@ -108,6 +108,9 @@ namespace OsnovnaSredstva
 
                     // Do something with propValue
                 }
+
+
+                
                 dgvPregled.Rows.Add(row.ToArray());
                 dgvPregled.Refresh();
             }

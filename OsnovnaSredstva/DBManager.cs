@@ -115,6 +115,13 @@ namespace OsnovnaSredstva
             SQLiteDataReader reader;
             reader = command.ExecuteReader();
 
+            var readerColumns = new List<string>();
+
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                readerColumns.Add(reader.GetName(i));
+            }
+
             if (reader.Read())
             {
                 OSItem item = new OSItem();
@@ -127,11 +134,11 @@ namespace OsnovnaSredstva
                 item.naziv = reader["naziv"].ToString();
 
 
-                item.kolicina = double.Parse(reader["kolicina"].ToString());
+                item.kolicina = double.Parse(reader.GetString(readerColumns.IndexOf("kolicina")), Form1.culture) ;
 
 
                 //item.datumNabavke = reader["datum_nabavke"].ToString();
-                item.nabavnaVrijednost = double.Parse(reader["nabavna_vrijednost"].ToString());
+                item.nabavnaVrijednost = double.Parse(reader.GetString(readerColumns.IndexOf("nabavna_vrijednost")), Form1.culture);
 
                 item.konto = reader["konto"].ToString();
 
@@ -142,15 +149,15 @@ namespace OsnovnaSredstva
 
                 item.datumVrijednosti = DateTime.ParseExact(reader["datum_vrijednosti"].ToString(), "yyyy-MM-dd HH:mm:ss", provider).ToString("dd.MM.yyyy.");
 
-                item.vrijednostNaDatum = double.Parse(reader["vr_na_datum_amortizacije"].ToString());
+                item.vrijednostNaDatum = double.Parse(reader.GetString(readerColumns.IndexOf("vr_na_datum_amortizacije")), Form1.culture);
 
-                item.ispravkaVrijednosti = double.Parse(reader["ispravka_vrijednosti"].ToString());
+                item.ispravkaVrijednosti = double.Parse(reader.GetString(readerColumns.IndexOf("ispravka_vrijednosti")), Form1.culture);
 
-                item.vek = double.Parse(reader["vek"].ToString());
+                item.vek = double.Parse(reader.GetString(readerColumns.IndexOf("vek")), Form1.culture);
 
                 item.datumOtpisa = DateTime.ParseExact(reader["datum_otpisa"].ToString(), "yyyy-MM-dd HH:mm:ss", provider).ToString("dd.MM.yyyy.");
 
-                item.sadasnjaVrijednost = double.Parse(reader["sadasnja_vrednost"].ToString());
+                item.sadasnjaVrijednost = double.Parse(reader.GetString(readerColumns.IndexOf("sadasnja_vrednost")), Form1.culture);
 
                 item.jedinicaMjere = reader["jedinica_mjere"].ToString();
 
@@ -172,7 +179,7 @@ namespace OsnovnaSredstva
 
                 item.amortizacionaGrupa = reader["amortizaciona_grupa"].ToString();
 
-                item.stopaAmortizacije = double.Parse(reader["stopa_amortizacije"].ToString());
+                item.stopaAmortizacije = double.Parse(reader.GetString(readerColumns.IndexOf("stopa_amortizacije")), Form1.culture);
 
                 item.active = reader["active"].ToString();
 
@@ -197,17 +204,17 @@ namespace OsnovnaSredstva
                 SQLiteCommand command = new SQLiteCommand(sql, cnn);
                 command.Parameters.AddWithValue("@inventurni_broj", item.inventurniBroj);
                 command.Parameters.AddWithValue("@naziv", item.naziv);
-                command.Parameters.AddWithValue("@kolicina", item.kolicina);
+                command.Parameters.AddWithValue("@kolicina", item.kolicina.ToString("0.0000"));
                 command.Parameters.AddWithValue("@datum_nabavke", DateTime.ParseExact(item.datumNabavke, "dd.MM.yyyy.", provider));
-                command.Parameters.AddWithValue("@nabavna_vrijednost", item.nabavnaVrijednost);
+                command.Parameters.AddWithValue("@nabavna_vrijednost", item.nabavnaVrijednost.ToString("0.0000"));
                 command.Parameters.AddWithValue("@konto", item.konto);
                 command.Parameters.AddWithValue("@datum_amortizacije", DateTime.ParseExact(item.datumAmortizacije, "dd.MM.yyyy.", provider));
                 command.Parameters.AddWithValue("@datum_vrijednosti", DateTime.ParseExact(item.datumVrijednosti, "dd.MM.yyyy.", provider));
-                command.Parameters.AddWithValue("@vr_na_datum_amortizacije", item.vrijednostNaDatum);
-                command.Parameters.AddWithValue("@ispravka_vrijednosti", item.ispravkaVrijednosti);
-                command.Parameters.AddWithValue("@vek", item.vek);
+                command.Parameters.AddWithValue("@vr_na_datum_amortizacije", item.vrijednostNaDatum.ToString("0.0000"));
+                command.Parameters.AddWithValue("@ispravka_vrijednosti", item.ispravkaVrijednosti.ToString("0.0000"));
+                command.Parameters.AddWithValue("@vek", item.vek.ToString("0.0000"));
                 command.Parameters.AddWithValue("@datum_otpisa", DateTime.ParseExact(item.datumOtpisa, "dd.MM.yyyy.", provider));
-                command.Parameters.AddWithValue("@sadasnja_vrednost", item.sadasnjaVrijednost);
+                command.Parameters.AddWithValue("@sadasnja_vrednost", item.sadasnjaVrijednost.ToString("0.0000"));
                 command.Parameters.AddWithValue("@jedinica_mjere", item.jedinicaMjere);
                 command.Parameters.AddWithValue("@dobavljac", item.dobavljac);
                 command.Parameters.AddWithValue("@racun_dok_dobavljaca", item.racunDobavljaca);
@@ -218,7 +225,7 @@ namespace OsnovnaSredstva
                 command.Parameters.AddWithValue("@poreske_grupe", item.poreskeGrupe);
                 command.Parameters.AddWithValue("@broj_po_nabavci", item.brojPoNabavci);
                 command.Parameters.AddWithValue("@amortizaciona_grupa", item.amortizacionaGrupa);
-                command.Parameters.AddWithValue("@stopa_amortizacije", item.stopaAmortizacije);
+                command.Parameters.AddWithValue("@stopa_amortizacije", item.stopaAmortizacije.ToString("0.0000"));
                 command.Parameters.AddWithValue("@active", item.active);
                 command.Parameters.AddWithValue("@id", item.id);
 

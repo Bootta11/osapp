@@ -173,7 +173,7 @@ namespace OsnovnaSredstva
             string strculture = (string)settings.GetValue("DefaultCulture", typeof(string));
             CultureInfo culture = new CultureInfo(strculture);
 
-            if (!double.TryParse(inputStopaAmortizacije.Text.Replace('.',','), NumberStyles.Any, culture, out temp))
+            if (!double.TryParse(inputStopaAmortizacije.Text.Replace('.', ','), NumberStyles.Any, culture, out temp))
             {
                 parseOK = false;
                 requiredFiledsOK = false;
@@ -258,6 +258,11 @@ namespace OsnovnaSredstva
         {
             //CalculateIspravkaVrijednostiSadasnjaVrijednost();
             inputDatumVrijednosti.MinDate = inputDatumAmortizacije.Value;
+            double stopAmortizacije;
+            if (double.TryParse(inputStopaAmortizacije.Text.Replace('.', ','), NumberStyles.Any, culture, out stopAmortizacije))
+            {
+                inputDatumOtpisa.Value = OSUtil.calculateDatumOtpisa(inputDatumAmortizacije.Value, stopAmortizacije);
+            }
         }
 
         private void inputDatumOtpisa_ValueChanged(object sender, EventArgs e)
@@ -517,12 +522,12 @@ namespace OsnovnaSredstva
             izmijenitiItemId = item.id;
             inputInventurniBroj.Text = item.inventurniBroj;
             inputNaziv.Text = item.naziv;
-            inputKolicina.Text = item.kolicina.ToString();
-            inputNabavnaVrednost.Text = item.nabavnaVrijednost.ToString();
+            inputKolicina.Text = item.kolicina.ToString("0.000");
+            inputNabavnaVrednost.Text = item.nabavnaVrijednost.ToString("0.000");
             inputKonto.Text = item.konto;
             inputVrijednostNaDatumAmortizacije.Text = item.vrijednostNaDatum < 0 ? "" : item.vrijednostNaDatum.ToString();
             inputjednicaMjere.Text = item.jedinicaMjere;
-            inputVek.Text = item.vek.ToString();
+            inputVek.Text = item.vek.ToString("0.000");
             inputDobavljac.Text = item.dobavljac;
             inputDobavljac.Text = item.dobavljac;
             inputRacunopolagac.Text = item.racunopolagac;
@@ -532,7 +537,7 @@ namespace OsnovnaSredstva
             inputPoreskeGrupe.Text = item.poreskeGrupe;
             inputAmortizacijaGrupe.Text = item.amortizacionaGrupa;
             inputBrojPoNabavci.Text = item.brojPoNabavci.ToString();
-            inputStopaAmortizacije.Text = item.stopaAmortizacije.ToString();
+            inputStopaAmortizacije.Text = item.stopaAmortizacije.ToString("0.000");
             inputDatumNabavke.Value = DateTime.ParseExact(item.datumNabavke, "dd.MM.yyyy.", provider);
             inputDatumAmortizacije.Value = DateTime.ParseExact(item.datumAmortizacije, "dd.MM.yyyy.", provider);
             inputDatumOtpisa.Value = DateTime.ParseExact(item.datumOtpisa, "dd.MM.yyyy.", provider);
@@ -560,6 +565,17 @@ namespace OsnovnaSredstva
         private void btnOcistitiUnose_Click(object sender, EventArgs e)
         {
             clearInput(tblInput);
+        }
+
+
+
+        private void inputStopaAmortizacije_TextChanged_1(object sender, EventArgs e)
+        {
+            double stopAmortizacije;
+            if (double.TryParse(inputStopaAmortizacije.Text.Replace('.', ','), NumberStyles.Any, culture, out stopAmortizacije))
+            {
+                inputDatumOtpisa.Value = OSUtil.calculateDatumOtpisa(inputDatumAmortizacije.Value, stopAmortizacije);
+            }
         }
     }
 }

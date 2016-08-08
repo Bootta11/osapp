@@ -80,7 +80,7 @@ namespace OsnovnaSredstva
         {
             double nbVrijednost = nabavnaVrijednost;
             DateTime currDate = currentDate;
-            
+
             double ret = 1;
             double sadasnjaVrijednost;
             double step = 0;
@@ -93,64 +93,12 @@ namespace OsnovnaSredstva
 
                 while (count < yearDiff)
                 {
+                    currDate = new DateTime(amortizacijeDate.Year + count, currDate.Month, currDate.Day, 0, 0, 0);
                     if (count == 0)
                     {
                         int daysInYear = DateTime.IsLeapYear(currDate.Year) ? 366 : 365;
-                        int daysLeftInYear = daysInYear - amortizacijeDate.DayOfYear; // Result is in range 0-365.
-                        step = (Math.Round( (nbVrijednost * (stopaAmortizacije / 100) / daysInYear), 4) * (daysLeftInYear));
-                        ret = step;
-                        sadasnjaVrijednost -= step;
-                    }
-                    else
-                    {
-                        step = nabavnaVrijednost * (stopaAmortizacije / 100);
-                        ret += step;
-                        sadasnjaVrijednost -= step;
-                    }
-                    count++;
-                }
-                int daysInCurrentYear = DateTime.IsLeapYear(currDate.Year) ? 366 : 365;
-                step = (Math.Round((nbVrijednost * (stopaAmortizacije / 100) / daysInCurrentYear),4)  * currDate.DayOfYear);
-                ret += step;
-            }
-            else
-            {
-                int daysInYear = DateTime.IsLeapYear(currDate.Year) ? 366 : 365;
-                ret = ( Math.Round( ((nbVrijednost * (stopaAmortizacije / 100))  /daysInYear), 4 ) * (Math.Floor((currDate - amortizacijeDate).TotalDays)));
-            }
-            //ret = Math.Round(ret, 3);
-            
-            if (ret < 0) ret = 0;
-            if (ret > nbVrijednost) ret = nbVrijednost;
-            return ret;
-        }
-
-        public static double ispravkaVrijednostiNaDatum(double nabavnaVrijednost, DateTime currentDate, DateTime amortizacijeDate, double stopaAmortizacije, double vrijednostNaDatum, DateTime datumVrijednosti)
-        {
-            double nbVrijednost = nabavnaVrijednost;
-            DateTime currDate = currentDate;
-            
-                nbVrijednost = vrijednostNaDatum;
-                currDate = currentDate;
-            
-            double ret = 1;
-            double sadasnjaVrijednost;
-            double step = 0;
-            int yearDiff = currDate.Year - amortizacijeDate.Year;
-            sadasnjaVrijednost = nbVrijednost;
-            if (yearDiff > 0)
-            {
-                int count = 0;
-                
-
-                while (count < yearDiff)
-                {
-                    currDate =  new DateTime(amortizacijeDate.Year+count, currDate.Month, currDate.Day, 0, 0, 0); ;
-                    if (count == 0)
-                    {
-                        int daysInYear = DateTime.IsLeapYear(currDate.Year) ? 366 : 365;
-                        int daysLeftInYear = daysInYear - datumVrijednosti.DayOfYear; // Result is in range 0-365.
-                        step = (Math.Round((nabavnaVrijednost * (stopaAmortizacije / 100) / daysInYear), 4) * (daysLeftInYear));
+                        int daysLeftInYear = daysInYear - amortizacijeDate.DayOfYear + 1; // Result is in range 0-365.
+                        step = (Math.Round((nabavnaVrijednost * (stopaAmortizacije / 100) / daysInYear), 15) * (daysLeftInYear));
                         ret = step;
                         sadasnjaVrijednost -= step;
                     }
@@ -164,13 +112,68 @@ namespace OsnovnaSredstva
                 }
                 currDate = new DateTime(amortizacijeDate.Year + count, currDate.Month, currDate.Day, 0, 0, 0);
                 int daysInCurrentYear = DateTime.IsLeapYear(currDate.Year) ? 366 : 365;
-                step = (Math.Round((nabavnaVrijednost * (stopaAmortizacije / 100) / daysInCurrentYear), 4) * currDate.DayOfYear);
+                step = (Math.Round((nabavnaVrijednost * (stopaAmortizacije / 100) / daysInCurrentYear), 15) * (currDate.DayOfYear -1));
+                ret += step;
+            }
+            else
+            {
+
+                int daysInYear = DateTime.IsLeapYear(currDate.Year) ? 366 : 365;
+                ret = (Math.Round(((nabavnaVrijednost * (stopaAmortizacije / 100)) / daysInYear), 15) * (Math.Floor((currDate - amortizacijeDate).TotalDays + 1)));
+            }
+            //ret = Math.Round(ret, 3);
+
+            if (ret < 0) ret = 0;
+            if (ret > nbVrijednost) ret = nbVrijednost;
+            return ret;
+        }
+
+        public static double ispravkaVrijednostiNaDatum(double nabavnaVrijednost, DateTime currentDate, DateTime amortizacijeDate, double stopaAmortizacije, double vrijednostNaDatum, DateTime datumVrijednosti)
+        {
+            double nbVrijednost = nabavnaVrijednost;
+            DateTime currDate = currentDate;
+
+            nbVrijednost = vrijednostNaDatum;
+            currDate = currentDate;
+
+            double ret = 1;
+            double sadasnjaVrijednost;
+            double step = 0;
+            int yearDiff = currDate.Year - amortizacijeDate.Year;
+            sadasnjaVrijednost = nbVrijednost;
+            if (yearDiff > 0)
+            {
+                int count = 0;
+
+
+                while (count < yearDiff)
+                {
+                    currDate = new DateTime(amortizacijeDate.Year + count, currDate.Month, currDate.Day, 0, 0, 0);
+                    if (count == 0)
+                    {
+                        int daysInYear = DateTime.IsLeapYear(currDate.Year) ? 366 : 365;
+                        int daysLeftInYear = daysInYear - datumVrijednosti.DayOfYear + 1; // Result is in range 0-365.
+                        step = (Math.Round((nabavnaVrijednost * (stopaAmortizacije / 100) / daysInYear), 8) * (daysLeftInYear));
+                        ret = step;
+                        sadasnjaVrijednost -= step;
+                    }
+                    else
+                    {
+                        step = nabavnaVrijednost * (stopaAmortizacije / 100);
+                        ret += step;
+                        sadasnjaVrijednost -= step;
+                    }
+                    count++;
+                }
+                currDate = new DateTime(amortizacijeDate.Year + count, currDate.Month, currDate.Day, 0, 0, 0);
+                int daysInCurrentYear = DateTime.IsLeapYear(currDate.Year) ? 366 : 365;
+                step = (Math.Round((nabavnaVrijednost * (stopaAmortizacije / 100) / daysInCurrentYear), 8) * currDate.DayOfYear);
                 ret += step;
             }
             else
             {
                 int daysInYear = DateTime.IsLeapYear(currDate.Year) ? 366 : 365;
-                ret = (Math.Round(((nabavnaVrijednost * (stopaAmortizacije / 100)) / daysInYear), 4) * (Math.Floor((currDate - datumVrijednosti).TotalDays)));
+                ret = (Math.Round(((nabavnaVrijednost * (stopaAmortizacije / 100)) / daysInYear), 8) * (Math.Floor((currDate - datumVrijednosti).TotalDays + 1)));
             }
             //ret = Math.Round(ret, 3);
 
@@ -253,6 +256,36 @@ namespace OsnovnaSredstva
             {
                 ret += b;
             }
+
+            return ret;
+        }
+
+        public static DateTime calculateDatumOtpisa(DateTime datumAmortizacije, double stopaAmortizacije)
+        {
+            DateTime ret = new DateTime();
+
+            int wholeParts = (int)Math.Floor(100 / stopaAmortizacije);
+            double lastPart = 100 % stopaAmortizacije;
+
+            DateTime wholePartsDate = new DateTime(datumAmortizacije.Year + wholeParts, datumAmortizacije.Month, datumAmortizacije.Day);
+
+            double amortisationSum = 0;
+
+            while (amortisationSum < lastPart)
+            {
+                int daysInYear = DateTime.IsLeapYear(wholePartsDate.Year) ? 366 : 365;
+                double dailyAmortisationSum = stopaAmortizacije / daysInYear;
+                amortisationSum += dailyAmortisationSum;
+                wholePartsDate=wholePartsDate.AddDays(1);
+            }
+
+            ret = wholePartsDate;
+            return ret;
+        }
+
+        public  static double strtodbl(string str)
+        {
+            double ret = 0;
 
             return ret;
         }

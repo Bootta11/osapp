@@ -67,10 +67,10 @@ namespace OsnovnaSredstva
             System.Timers.Timer timer = (System.Timers.Timer)source;
             timer.Enabled = false;
             staticForm.Invoke((MethodInvoker)delegate {
-
-               // lblMessageHolderForTimer.Visible = false; // runs on UI thread
+                lblMsg.Visible = false;
+                // lblMessageHolderForTimer.Visible = false; // runs on UI thread
             });
-            lblMsg.Visible = false;
+            
             //lblMessageHolderForTimer.Visible = false;
 
         }

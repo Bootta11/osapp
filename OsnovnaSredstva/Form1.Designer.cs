@@ -34,6 +34,7 @@
             this.lblKorisnik = new System.Windows.Forms.Label();
             this.tblCenter = new System.Windows.Forms.TableLayoutPanel();
             this.tblRightButtonMenu = new System.Windows.Forms.TableLayoutPanel();
+            this.btnOcistitiUnose = new System.Windows.Forms.Button();
             this.btnSnimiti = new System.Windows.Forms.Button();
             this.btnPregled = new System.Windows.Forms.Button();
             this.tblInput = new System.Windows.Forms.TableLayoutPanel();
@@ -71,8 +72,8 @@
             this.label11 = new System.Windows.Forms.Label();
             this.tblRow02Column1 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel6 = new System.Windows.Forms.TableLayoutPanel();
-            this.inputDatumOtpisa = new System.Windows.Forms.DateTimePicker();
-            this.label5 = new System.Windows.Forms.Label();
+            this.inputStopaAmortizacije = new System.Windows.Forms.TextBox();
+            this.label22 = new System.Windows.Forms.Label();
             this.tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
             this.label2 = new System.Windows.Forms.Label();
             this.inputDatumNabavke = new System.Windows.Forms.DateTimePicker();
@@ -82,8 +83,8 @@
             this.tableLayoutPanel13 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel15 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel26 = new System.Windows.Forms.TableLayoutPanel();
-            this.inputStopaAmortizacije = new System.Windows.Forms.TextBox();
-            this.label22 = new System.Windows.Forms.Label();
+            this.inputDatumOtpisa = new System.Windows.Forms.DateTimePicker();
+            this.label5 = new System.Windows.Forms.Label();
             this.tableLayoutPanel25 = new System.Windows.Forms.TableLayoutPanel();
             this.inputAmortizacijaGrupe = new System.Windows.Forms.TextBox();
             this.label21 = new System.Windows.Forms.Label();
@@ -113,7 +114,6 @@
             this.inputRacunopolagac = new System.Windows.Forms.TextBox();
             this.label14 = new System.Windows.Forms.Label();
             this.tblMain = new System.Windows.Forms.TableLayoutPanel();
-            this.btnOcistitiUnose = new System.Windows.Forms.Button();
             this.top.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.tblCenter.SuspendLayout();
@@ -234,6 +234,17 @@
             this.tblRightButtonMenu.Size = new System.Drawing.Size(158, 246);
             this.tblRightButtonMenu.TabIndex = 0;
             // 
+            // btnOcistitiUnose
+            // 
+            this.btnOcistitiUnose.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.btnOcistitiUnose.Location = new System.Drawing.Point(3, 82);
+            this.btnOcistitiUnose.Name = "btnOcistitiUnose";
+            this.btnOcistitiUnose.Size = new System.Drawing.Size(152, 35);
+            this.btnOcistitiUnose.TabIndex = 2;
+            this.btnOcistitiUnose.Text = "Očistiti unose";
+            this.btnOcistitiUnose.UseVisualStyleBackColor = true;
+            this.btnOcistitiUnose.Click += new System.EventHandler(this.btnOcistitiUnose_Click);
+            // 
             // btnSnimiti
             // 
             this.btnSnimiti.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -299,7 +310,7 @@
             this.tableLayoutPanel1.ColumnCount = 3;
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 47.59036F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 52.40964F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 252F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 254F));
             this.tableLayoutPanel1.Controls.Add(this.tblRow1, 2, 0);
             this.tableLayoutPanel1.Controls.Add(this.tableLayoutPanel2, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.tableLayoutPanel3, 1, 0);
@@ -322,19 +333,19 @@
             this.tblRow1.Controls.Add(this.label4, 0, 0);
             this.tblRow1.Controls.Add(this.inputKolicina, 1, 0);
             this.tblRow1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tblRow1.Location = new System.Drawing.Point(548, 0);
+            this.tblRow1.Location = new System.Drawing.Point(546, 0);
             this.tblRow1.Margin = new System.Windows.Forms.Padding(0);
             this.tblRow1.Name = "tblRow1";
             this.tblRow1.RowCount = 1;
             this.tblRow1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tblRow1.Size = new System.Drawing.Size(253, 28);
+            this.tblRow1.Size = new System.Drawing.Size(255, 28);
             this.tblRow1.TabIndex = 2;
             // 
             // label4
             // 
             this.label4.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(39, 7);
+            this.label4.Location = new System.Drawing.Point(40, 7);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(47, 13);
             this.label4.TabIndex = 0;
@@ -342,8 +353,8 @@
             // 
             // inputKolicina
             // 
-            this.inputKolicina.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.inputKolicina.Location = new System.Drawing.Point(129, 3);
+            this.inputKolicina.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.inputKolicina.Location = new System.Drawing.Point(130, 4);
             this.inputKolicina.Name = "inputKolicina";
             this.inputKolicina.Size = new System.Drawing.Size(121, 20);
             this.inputKolicina.TabIndex = 1;
@@ -363,7 +374,7 @@
             this.tableLayoutPanel2.RowCount = 1;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28F));
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(261, 28);
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(260, 28);
             this.tableLayoutPanel2.TabIndex = 0;
             // 
             // label1
@@ -378,10 +389,10 @@
             // 
             // inputInventurniBroj
             // 
-            this.inputInventurniBroj.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.inputInventurniBroj.Location = new System.Drawing.Point(133, 3);
+            this.inputInventurniBroj.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.inputInventurniBroj.Location = new System.Drawing.Point(133, 4);
             this.inputInventurniBroj.Name = "inputInventurniBroj";
-            this.inputInventurniBroj.Size = new System.Drawing.Size(125, 20);
+            this.inputInventurniBroj.Size = new System.Drawing.Size(124, 20);
             this.inputInventurniBroj.TabIndex = 1;
             // 
             // tableLayoutPanel3
@@ -393,12 +404,12 @@
             this.tableLayoutPanel3.Controls.Add(this.label3, 0, 0);
             this.tableLayoutPanel3.Controls.Add(this.inputNaziv, 1, 0);
             this.tableLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tableLayoutPanel3.Location = new System.Drawing.Point(261, 0);
+            this.tableLayoutPanel3.Location = new System.Drawing.Point(260, 0);
             this.tableLayoutPanel3.Margin = new System.Windows.Forms.Padding(0);
             this.tableLayoutPanel3.Name = "tableLayoutPanel3";
             this.tableLayoutPanel3.RowCount = 1;
             this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel3.Size = new System.Drawing.Size(287, 28);
+            this.tableLayoutPanel3.Size = new System.Drawing.Size(286, 28);
             this.tableLayoutPanel3.TabIndex = 1;
             // 
             // label3
@@ -413,11 +424,11 @@
             // 
             // inputNaziv
             // 
+            this.inputNaziv.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.inputNaziv.BackColor = System.Drawing.SystemColors.Window;
-            this.inputNaziv.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.inputNaziv.Location = new System.Drawing.Point(146, 3);
+            this.inputNaziv.Location = new System.Drawing.Point(146, 4);
             this.inputNaziv.Name = "inputNaziv";
-            this.inputNaziv.Size = new System.Drawing.Size(138, 20);
+            this.inputNaziv.Size = new System.Drawing.Size(137, 20);
             this.inputNaziv.TabIndex = 1;
             this.inputNaziv.TextChanged += new System.EventHandler(this.inputNaziv_TextChanged);
             // 
@@ -426,7 +437,7 @@
             this.tblRow02.ColumnCount = 3;
             this.tblRow02.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 47.3161F));
             this.tblRow02.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 52.6839F));
-            this.tblRow02.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 250F));
+            this.tblRow02.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 252F));
             this.tblRow02.Controls.Add(this.tblRow02Column03, 2, 0);
             this.tblRow02.Controls.Add(this.tblRow02Column02, 1, 0);
             this.tblRow02.Controls.Add(this.tblRow02Column1, 0, 0);
@@ -448,14 +459,14 @@
             this.tblRow02Column03.Controls.Add(this.tableLayoutPanel9, 0, 0);
             this.tblRow02Column03.Controls.Add(this.tableLayoutPanel12, 0, 1);
             this.tblRow02Column03.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tblRow02Column03.Location = new System.Drawing.Point(544, 0);
+            this.tblRow02Column03.Location = new System.Drawing.Point(542, 0);
             this.tblRow02Column03.Margin = new System.Windows.Forms.Padding(0);
             this.tblRow02Column03.Name = "tblRow02Column03";
             this.tblRow02Column03.RowCount = 3;
             this.tblRow02Column03.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 46.57534F));
             this.tblRow02Column03.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 53.42466F));
             this.tblRow02Column03.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
-            this.tblRow02Column03.Size = new System.Drawing.Size(251, 81);
+            this.tblRow02Column03.Size = new System.Drawing.Size(253, 81);
             this.tblRow02Column03.TabIndex = 2;
             // 
             // tableLayoutPanel10
@@ -472,13 +483,13 @@
             this.tableLayoutPanel10.RowCount = 1;
             this.tableLayoutPanel10.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel10.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 31F));
-            this.tableLayoutPanel10.Size = new System.Drawing.Size(251, 31);
+            this.tableLayoutPanel10.Size = new System.Drawing.Size(253, 31);
             this.tableLayoutPanel10.TabIndex = 2;
             // 
             // inputVek
             // 
-            this.inputVek.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.inputVek.Location = new System.Drawing.Point(128, 3);
+            this.inputVek.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.inputVek.Location = new System.Drawing.Point(129, 5);
             this.inputVek.Name = "inputVek";
             this.inputVek.Size = new System.Drawing.Size(120, 20);
             this.inputVek.TabIndex = 1;
@@ -507,14 +518,14 @@
             this.tableLayoutPanel9.RowCount = 1;
             this.tableLayoutPanel9.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel9.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 23F));
-            this.tableLayoutPanel9.Size = new System.Drawing.Size(251, 23);
+            this.tableLayoutPanel9.Size = new System.Drawing.Size(253, 23);
             this.tableLayoutPanel9.TabIndex = 0;
             // 
             // label9
             // 
             this.label9.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(43, 5);
+            this.label9.Location = new System.Drawing.Point(44, 5);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(38, 13);
             this.label9.TabIndex = 0;
@@ -522,8 +533,8 @@
             // 
             // inputKonto
             // 
-            this.inputKonto.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.inputKonto.Location = new System.Drawing.Point(128, 3);
+            this.inputKonto.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.inputKonto.Location = new System.Drawing.Point(129, 3);
             this.inputKonto.Name = "inputKonto";
             this.inputKonto.Size = new System.Drawing.Size(120, 20);
             this.inputKonto.TabIndex = 1;
@@ -541,13 +552,13 @@
             this.tableLayoutPanel12.Name = "tableLayoutPanel12";
             this.tableLayoutPanel12.RowCount = 1;
             this.tableLayoutPanel12.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel12.Size = new System.Drawing.Size(251, 27);
+            this.tableLayoutPanel12.Size = new System.Drawing.Size(253, 27);
             this.tableLayoutPanel12.TabIndex = 1;
             // 
             // inputVrijednostNaDatumAmortizacije
             // 
-            this.inputVrijednostNaDatumAmortizacije.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.inputVrijednostNaDatumAmortizacije.Location = new System.Drawing.Point(128, 3);
+            this.inputVrijednostNaDatumAmortizacije.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.inputVrijednostNaDatumAmortizacije.Location = new System.Drawing.Point(129, 3);
             this.inputVrijednostNaDatumAmortizacije.Name = "inputVrijednostNaDatumAmortizacije";
             this.inputVrijednostNaDatumAmortizacije.Size = new System.Drawing.Size(120, 20);
             this.inputVrijednostNaDatumAmortizacije.TabIndex = 1;
@@ -556,7 +567,7 @@
             // 
             this.label8.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(27, 7);
+            this.label8.Location = new System.Drawing.Point(28, 7);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(70, 13);
             this.label8.TabIndex = 0;
@@ -571,7 +582,7 @@
             this.tblRow02Column02.Controls.Add(this.tableLayoutPanel7, 0, 0);
             this.tblRow02Column02.Controls.Add(this.tableLayoutPanel11, 0, 1);
             this.tblRow02Column02.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tblRow02Column02.Location = new System.Drawing.Point(257, 0);
+            this.tblRow02Column02.Location = new System.Drawing.Point(256, 0);
             this.tblRow02Column02.Margin = new System.Windows.Forms.Padding(0);
             this.tblRow02Column02.Name = "tblRow02Column02";
             this.tblRow02Column02.RowCount = 3;
@@ -579,7 +590,7 @@
             this.tblRow02Column02.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 53.42466F));
             this.tblRow02Column02.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             this.tblRow02Column02.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tblRow02Column02.Size = new System.Drawing.Size(287, 81);
+            this.tblRow02Column02.Size = new System.Drawing.Size(286, 81);
             this.tblRow02Column02.TabIndex = 1;
             // 
             // tableLayoutPanel8
@@ -596,15 +607,15 @@
             this.tableLayoutPanel8.RowCount = 1;
             this.tableLayoutPanel8.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel8.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 31F));
-            this.tableLayoutPanel8.Size = new System.Drawing.Size(287, 31);
+            this.tableLayoutPanel8.Size = new System.Drawing.Size(286, 31);
             this.tableLayoutPanel8.TabIndex = 2;
             // 
             // inputjednicaMjere
             // 
-            this.inputjednicaMjere.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.inputjednicaMjere.Location = new System.Drawing.Point(146, 3);
+            this.inputjednicaMjere.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.inputjednicaMjere.Location = new System.Drawing.Point(146, 5);
             this.inputjednicaMjere.Name = "inputjednicaMjere";
-            this.inputjednicaMjere.Size = new System.Drawing.Size(138, 20);
+            this.inputjednicaMjere.Size = new System.Drawing.Size(137, 20);
             this.inputjednicaMjere.TabIndex = 1;
             // 
             // label10
@@ -631,7 +642,7 @@
             this.tableLayoutPanel7.RowCount = 1;
             this.tableLayoutPanel7.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel7.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 23F));
-            this.tableLayoutPanel7.Size = new System.Drawing.Size(287, 23);
+            this.tableLayoutPanel7.Size = new System.Drawing.Size(286, 23);
             this.tableLayoutPanel7.TabIndex = 0;
             // 
             // label7
@@ -646,10 +657,10 @@
             // 
             // inputNabavnaVrednost
             // 
-            this.inputNabavnaVrednost.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.inputNabavnaVrednost.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.inputNabavnaVrednost.Location = new System.Drawing.Point(146, 3);
             this.inputNabavnaVrednost.Name = "inputNabavnaVrednost";
-            this.inputNabavnaVrednost.Size = new System.Drawing.Size(138, 20);
+            this.inputNabavnaVrednost.Size = new System.Drawing.Size(137, 20);
             this.inputNabavnaVrednost.TabIndex = 1;
             this.inputNabavnaVrednost.Leave += new System.EventHandler(this.inputNabavnaVrednost_Leave);
             // 
@@ -667,16 +678,17 @@
             this.tableLayoutPanel11.RowCount = 1;
             this.tableLayoutPanel11.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel11.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel11.Size = new System.Drawing.Size(287, 27);
+            this.tableLayoutPanel11.Size = new System.Drawing.Size(286, 27);
             this.tableLayoutPanel11.TabIndex = 1;
             // 
             // inputDatumVrijednosti
             // 
             this.inputDatumVrijednosti.CustomFormat = "dd.MM.yyyy.";
+            this.inputDatumVrijednosti.Dock = System.Windows.Forms.DockStyle.Fill;
             this.inputDatumVrijednosti.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
             this.inputDatumVrijednosti.Location = new System.Drawing.Point(146, 3);
             this.inputDatumVrijednosti.Name = "inputDatumVrijednosti";
-            this.inputDatumVrijednosti.Size = new System.Drawing.Size(106, 20);
+            this.inputDatumVrijednosti.Size = new System.Drawing.Size(137, 20);
             this.inputDatumVrijednosti.TabIndex = 1;
             this.inputDatumVrijednosti.Value = new System.DateTime(2016, 7, 1, 8, 56, 0, 0);
             // 
@@ -707,7 +719,7 @@
             this.tblRow02Column1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 53.42466F));
             this.tblRow02Column1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             this.tblRow02Column1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tblRow02Column1.Size = new System.Drawing.Size(257, 81);
+            this.tblRow02Column1.Size = new System.Drawing.Size(256, 81);
             this.tblRow02Column1.TabIndex = 0;
             // 
             // tableLayoutPanel6
@@ -715,8 +727,8 @@
             this.tableLayoutPanel6.ColumnCount = 2;
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel6.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel6.Controls.Add(this.inputDatumOtpisa, 0, 0);
-            this.tableLayoutPanel6.Controls.Add(this.label5, 0, 0);
+            this.tableLayoutPanel6.Controls.Add(this.inputStopaAmortizacije, 0, 0);
+            this.tableLayoutPanel6.Controls.Add(this.label22, 0, 0);
             this.tableLayoutPanel6.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel6.Location = new System.Drawing.Point(0, 50);
             this.tableLayoutPanel6.Margin = new System.Windows.Forms.Padding(0);
@@ -724,29 +736,27 @@
             this.tableLayoutPanel6.RowCount = 1;
             this.tableLayoutPanel6.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel6.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 31F));
-            this.tableLayoutPanel6.Size = new System.Drawing.Size(257, 31);
+            this.tableLayoutPanel6.Size = new System.Drawing.Size(256, 31);
             this.tableLayoutPanel6.TabIndex = 2;
             // 
-            // inputDatumOtpisa
+            // inputStopaAmortizacije
             // 
-            this.inputDatumOtpisa.CustomFormat = "dd.MM.yyyy.";
-            this.inputDatumOtpisa.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.inputDatumOtpisa.Location = new System.Drawing.Point(131, 3);
-            this.inputDatumOtpisa.Name = "inputDatumOtpisa";
-            this.inputDatumOtpisa.Size = new System.Drawing.Size(106, 20);
-            this.inputDatumOtpisa.TabIndex = 1;
-            this.inputDatumOtpisa.Value = new System.DateTime(2020, 7, 1, 8, 56, 0, 0);
-            this.inputDatumOtpisa.ValueChanged += new System.EventHandler(this.inputDatumOtpisa_ValueChanged);
+            this.inputStopaAmortizacije.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.inputStopaAmortizacije.Location = new System.Drawing.Point(131, 5);
+            this.inputStopaAmortizacije.Name = "inputStopaAmortizacije";
+            this.inputStopaAmortizacije.Size = new System.Drawing.Size(122, 20);
+            this.inputStopaAmortizacije.TabIndex = 2;
+            this.inputStopaAmortizacije.TextChanged += new System.EventHandler(this.inputStopaAmortizacije_TextChanged_1);
             // 
-            // label5
+            // label22
             // 
-            this.label5.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(28, 9);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(72, 13);
-            this.label5.TabIndex = 0;
-            this.label5.Text = "Datum otpisa:";
+            this.label22.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.label22.AutoSize = true;
+            this.label22.Location = new System.Drawing.Point(10, 9);
+            this.label22.Name = "label22";
+            this.label22.Size = new System.Drawing.Size(107, 13);
+            this.label22.TabIndex = 1;
+            this.label22.Text = "Stopa amotizacije(%):";
             // 
             // tableLayoutPanel4
             // 
@@ -762,7 +772,7 @@
             this.tableLayoutPanel4.RowCount = 1;
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 23F));
-            this.tableLayoutPanel4.Size = new System.Drawing.Size(257, 23);
+            this.tableLayoutPanel4.Size = new System.Drawing.Size(256, 23);
             this.tableLayoutPanel4.TabIndex = 0;
             // 
             // label2
@@ -778,10 +788,11 @@
             // inputDatumNabavke
             // 
             this.inputDatumNabavke.CustomFormat = "dd.MM.yyyy.";
+            this.inputDatumNabavke.Dock = System.Windows.Forms.DockStyle.Fill;
             this.inputDatumNabavke.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
             this.inputDatumNabavke.Location = new System.Drawing.Point(131, 3);
             this.inputDatumNabavke.Name = "inputDatumNabavke";
-            this.inputDatumNabavke.Size = new System.Drawing.Size(106, 20);
+            this.inputDatumNabavke.Size = new System.Drawing.Size(122, 20);
             this.inputDatumNabavke.TabIndex = 1;
             this.inputDatumNabavke.Value = new System.DateTime(2016, 6, 1, 8, 56, 0, 0);
             this.inputDatumNabavke.ValueChanged += new System.EventHandler(this.inputDatumNabavke_ValueChanged_1);
@@ -800,16 +811,17 @@
             this.tableLayoutPanel5.RowCount = 1;
             this.tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel5.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel5.Size = new System.Drawing.Size(257, 27);
+            this.tableLayoutPanel5.Size = new System.Drawing.Size(256, 27);
             this.tableLayoutPanel5.TabIndex = 1;
             // 
             // inputDatumAmortizacije
             // 
             this.inputDatumAmortizacije.CustomFormat = "dd.MM.yyyy.";
+            this.inputDatumAmortizacije.Dock = System.Windows.Forms.DockStyle.Fill;
             this.inputDatumAmortizacije.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
             this.inputDatumAmortizacije.Location = new System.Drawing.Point(131, 3);
             this.inputDatumAmortizacije.Name = "inputDatumAmortizacije";
-            this.inputDatumAmortizacije.Size = new System.Drawing.Size(106, 20);
+            this.inputDatumAmortizacije.Size = new System.Drawing.Size(122, 20);
             this.inputDatumAmortizacije.TabIndex = 1;
             this.inputDatumAmortizacije.Value = new System.DateTime(2016, 7, 1, 8, 56, 0, 0);
             this.inputDatumAmortizacije.ValueChanged += new System.EventHandler(this.inputDatumAmortizacije_ValueChanged);
@@ -871,8 +883,8 @@
             this.tableLayoutPanel26.ColumnCount = 2;
             this.tableLayoutPanel26.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel26.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel26.Controls.Add(this.inputStopaAmortizacije, 0, 0);
-            this.tableLayoutPanel26.Controls.Add(this.label22, 0, 0);
+            this.tableLayoutPanel26.Controls.Add(this.inputDatumOtpisa, 0, 0);
+            this.tableLayoutPanel26.Controls.Add(this.label5, 0, 0);
             this.tableLayoutPanel26.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel26.Location = new System.Drawing.Point(0, 99);
             this.tableLayoutPanel26.Margin = new System.Windows.Forms.Padding(0);
@@ -882,24 +894,26 @@
             this.tableLayoutPanel26.Size = new System.Drawing.Size(401, 26);
             this.tableLayoutPanel26.TabIndex = 4;
             // 
-            // inputStopaAmortizacije
+            // inputDatumOtpisa
             // 
-            this.inputStopaAmortizacije.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.inputStopaAmortizacije.Location = new System.Drawing.Point(203, 3);
-            this.inputStopaAmortizacije.Name = "inputStopaAmortizacije";
-            this.inputStopaAmortizacije.Size = new System.Drawing.Size(195, 20);
-            this.inputStopaAmortizacije.TabIndex = 1;
-            this.inputStopaAmortizacije.Leave += new System.EventHandler(this.inputStopaAmortizacije_Leave);
+            this.inputDatumOtpisa.CustomFormat = "dd.MM.yyyy.";
+            this.inputDatumOtpisa.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.inputDatumOtpisa.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.inputDatumOtpisa.Location = new System.Drawing.Point(203, 3);
+            this.inputDatumOtpisa.Name = "inputDatumOtpisa";
+            this.inputDatumOtpisa.Size = new System.Drawing.Size(195, 20);
+            this.inputDatumOtpisa.TabIndex = 7;
+            this.inputDatumOtpisa.Value = new System.DateTime(2020, 7, 1, 8, 56, 0, 0);
             // 
-            // label22
+            // label5
             // 
-            this.label22.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.label22.AutoSize = true;
-            this.label22.Location = new System.Drawing.Point(46, 6);
-            this.label22.Name = "label22";
-            this.label22.Size = new System.Drawing.Size(107, 13);
-            this.label22.TabIndex = 0;
-            this.label22.Text = "Stopa amotizacije(%):";
+            this.label5.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(64, 6);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(72, 13);
+            this.label5.TabIndex = 6;
+            this.label5.Text = "Datum otpisa:";
             // 
             // tableLayoutPanel25
             // 
@@ -1256,17 +1270,6 @@
             this.tblMain.Size = new System.Drawing.Size(989, 424);
             this.tblMain.TabIndex = 0;
             // 
-            // btnOcistitiUnose
-            // 
-            this.btnOcistitiUnose.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.btnOcistitiUnose.Location = new System.Drawing.Point(3, 82);
-            this.btnOcistitiUnose.Name = "btnOcistitiUnose";
-            this.btnOcistitiUnose.Size = new System.Drawing.Size(152, 35);
-            this.btnOcistitiUnose.TabIndex = 2;
-            this.btnOcistitiUnose.Text = "Očistiti unose";
-            this.btnOcistitiUnose.UseVisualStyleBackColor = true;
-            this.btnOcistitiUnose.Click += new System.EventHandler(this.btnOcistitiUnose_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1380,8 +1383,6 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel11;
         private System.Windows.Forms.TableLayoutPanel tblRow02Column1;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel6;
-        private System.Windows.Forms.DateTimePicker inputDatumOtpisa;
-        private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel4;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.DateTimePicker inputDatumNabavke;
@@ -1391,8 +1392,6 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel13;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel15;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel26;
-        private System.Windows.Forms.TextBox inputStopaAmortizacije;
-        private System.Windows.Forms.Label label22;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel25;
         private System.Windows.Forms.TextBox inputAmortizacijaGrupe;
         private System.Windows.Forms.Label label21;
@@ -1432,6 +1431,10 @@
         private System.Windows.Forms.ComboBox inputMetodaAmortizacije;
         private System.Windows.Forms.Label lblKorisnik;
         private System.Windows.Forms.Button btnOcistitiUnose;
+        private System.Windows.Forms.TextBox inputStopaAmortizacije;
+        private System.Windows.Forms.Label label22;
+        private System.Windows.Forms.DateTimePicker inputDatumOtpisa;
+        private System.Windows.Forms.Label label5;
     }
 }
 
