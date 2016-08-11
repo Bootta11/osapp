@@ -31,7 +31,7 @@ namespace OsnovnaSredstva
         public string smjestaj { set; get; }
         public string metodaAmortizacije { set; get; }
         public string poreskeGrupe { set; get; }
-        public int brojPoNabavci { set; get; }
+        public string brojPoNabavci { set; get; }
         public string amortizacionaGrupa { set; get; }
         public double stopaAmortizacije { set; get; }
         public string active { set; get; }

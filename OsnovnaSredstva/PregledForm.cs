@@ -12,12 +12,13 @@ using System.Drawing.Printing;
 using System.Globalization;
 using NPOI.HSSF.Model; // InternalWorkbook
 using NPOI.HSSF.UserModel; // HSSFWorkbook, HSSFSheet
-using System.IO;
+using log4net;
 
 namespace OsnovnaSredstva
 {
     public partial class PregledForm : Form
     {
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         static int itemPrintNum = 0;
         List<OSItem> changedItems = new List<OSItem>();
         static ListWithFieldMaxLengths itemsForList = new ListWithFieldMaxLengths();
@@ -36,7 +37,7 @@ namespace OsnovnaSredstva
 
 
 
-            itemsForList = DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(DateTime.Now);
+            itemsForList = DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(DateTime.Now.Date);
             font = new Font("Courier New", 8);
 
 
@@ -95,7 +96,8 @@ namespace OsnovnaSredstva
                     }
                     else
                     {
-                        if (props.ElementAt(i).PropertyType == typeof(double)) {
+                        if (props.ElementAt(i).PropertyType == typeof(double))
+                        {
                             string str = ((double)props.ElementAt(i).GetValue(item, null)).ToString("0.000");
                             row.Add(str);
                         }
@@ -110,7 +112,7 @@ namespace OsnovnaSredstva
                 }
 
 
-                
+
                 dgvPregled.Rows.Add(row.ToArray());
                 dgvPregled.Refresh();
             }
@@ -119,46 +121,54 @@ namespace OsnovnaSredstva
         //define rw as globly variable in form
         public void zpt()
         {
-            try
+            if (itemsForList.items.Count > 0)
             {
-                PrintDialog pd = new PrintDialog();
-                PrintDocument pdoc = new PrintDocument();
-
-                PrinterSettings ps = new PrinterSettings();
-
-                PaperSize psz = new PaperSize("Custom", 100, 200);
-                PaperSize pszA4 = new PaperSize();
-                pszA4.RawKind = (int)PaperKind.A4;
-                pd.Document = pdoc;
-                pd.Document.DefaultPageSettings.PaperSize = pszA4;
-                //pdoc.DefaultPageSettings.PaperSize.Height = 820;
-                //pdoc.DefaultPageSettings.PaperSize.Width = 700;
-                pdoc.DefaultPageSettings.Landscape = true;
-
-                pdoc.PrintPage += new PrintPageEventHandler(pdoc_PrintPage);
-                DialogResult res = pd.ShowDialog();
-                if (res == DialogResult.OK)
+                try
                 {
-                    PrintDocument pdocDuplicate = pdoc;
+                    PrintDialog pd = new PrintDialog();
+                    PrintDocument pdoc = new PrintDocument();
 
-                    PrintPreviewDialog prv = new PrintPreviewDialog();
+                    PrinterSettings ps = new PrinterSettings();
 
-                    prv.Document = pdoc;
+                    PaperSize psz = new PaperSize("Custom", 100, 200);
+                    PaperSize pszA4 = new PaperSize();
+                    pszA4.RawKind = (int)PaperKind.A4;
+                    pd.Document = pdoc;
+                    pd.Document.DefaultPageSettings.PaperSize = pszA4;
+                    //pdoc.DefaultPageSettings.PaperSize.Height = 820;
+                    //pdoc.DefaultPageSettings.PaperSize.Width = 700;
+                    pdoc.DefaultPageSettings.Landscape = true;
 
-                    res = prv.ShowDialog();
-
+                    pdoc.PrintPage += new PrintPageEventHandler(pdoc_PrintPage);
+                    DialogResult res = pd.ShowDialog();
                     if (res == DialogResult.OK)
                     {
-                        pdocDuplicate.Print();
+                        PrintDocument pdocDuplicate = pdoc;
 
+                        PrintPreviewDialog prv = new PrintPreviewDialog();
+
+                        prv.Document = pdoc;
+
+                        res = prv.ShowDialog();
+
+                        if (res == DialogResult.OK)
+                        {
+                            pdocDuplicate.Print();
+
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.StackTrace);
+                }
             }
-            catch (Exception ex)
+            else
             {
-                Console.WriteLine(ex.StackTrace);
+                MessageBox.Show("Tabela je prazna, nema podataka za stampanje.", "Printanje zaustavljeno", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
+
         void pdoc_PrintPage(object sender, PrintPageEventArgs e)
         {
 
@@ -212,6 +222,18 @@ namespace OsnovnaSredstva
 
             }
 
+            if (cbEnablePocetniDatum.Checked)
+            {
+                graphics.DrawString("Lista osnovnih sredstava za period od " + dtPocetniDatumAmortizacije.Value.ToString("dd.MM.yyyy.") + " do " + dtAmortizacije.Value.ToString("dd.MM.yyyy."), font, Brushes.Black, offsetX, offsetY);
+            }
+            else
+            {
+                graphics.DrawString("Lista osnovnih sredstava na dan " + dtAmortizacije.Value.ToString("dd.MM.yyyy.") , font, Brushes.Black, offsetX, offsetY);
+            }
+
+            offsetX = startX;
+            offsetY += dgvPregled.Rows[0].Height;
+
             foreach (string cname in columns)
             {
                 SizeF maxStringSize = new SizeF();
@@ -229,6 +251,8 @@ namespace OsnovnaSredstva
 
                 offsetX += (int)lengthsList[cname];
             }
+
+
 
             StringFormat stringDrawFormat2 = new StringFormat();
             stringDrawFormat2.Alignment = StringAlignment.Center;
@@ -332,6 +356,8 @@ namespace OsnovnaSredstva
                 }
             }
 
+
+
         }
 
         private void btnPrint_Click(object sender, EventArgs e)
@@ -362,7 +388,7 @@ namespace OsnovnaSredstva
                     if (dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value != null)
                     {
                         DateTime dt = new DateTime();
-                        update = DateTime.TryParseExact(dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), "dd.MM.yyyy.", Form1.culture, DateTimeStyles.None, out dt);
+                        update = DateTime.TryParseExact(dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), "d.MM.yyyy.", Form1.culture, DateTimeStyles.None, out dt);
                         prop.SetValue(item, dt.ToString("dd.MM.yyyy."), null);
                     }
                     else
@@ -380,7 +406,15 @@ namespace OsnovnaSredstva
             }
             if (update)
             {
+                if (prop.Name.StartsWith("datumAmortizacije") || prop.Name.StartsWith("stopaAmortizacije"))
+                {
+                    DateTime dt = new DateTime();
+                    update = DateTime.TryParseExact(dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString(), "d.MM.yyyy.", Form1.culture, DateTimeStyles.None, out dt);
+
+                    item.datumOtpisa = OSUtil.calculateDatumOtpisa(dt, item.stopaAmortizacije).ToString("dd.MM.yyyy.");
+                }
                 DBManager.UpdateItem(item);
+
                 if (fcvlist.Count > 0)
                     FillGridView(DBManager.GetAllWithFilter(fcvlist, dtAmortizacije.Value));
                 else
@@ -395,7 +429,7 @@ namespace OsnovnaSredstva
 
             DBManager.deleteOS((string)e.Row.Cells["id"].Value);
 
-            
+
         }
 
 
@@ -406,71 +440,90 @@ namespace OsnovnaSredstva
 
         private void brnKreirajCSV_Click(object sender, EventArgs e)
         {
-            //System.IO.StreamWriter file = new System.IO.StreamWriter(@"items.csv", false);
-            System.IO.StreamWriter file;
-            HSSFWorkbook wb;
-            HSSFSheet sh;
-
-            //System.Web.HttpContext.Current.Response.Write("Some Text");
-            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-            saveFileDialog1.Filter = "Comma separated values|*.csv";
-            saveFileDialog1.Title = "Save an CSV File";
-            saveFileDialog1.DefaultExt = "csv";
-            DialogResult? result = saveFileDialog1.ShowDialog();
-            if (result == DialogResult.OK)
+            try
             {
-                //Console.WriteLine(saveFileDialog1.);
-                System.IO.Stream dlgstream;
-                if ((dlgstream = saveFileDialog1.OpenFile()) != null)
+                //System.IO.StreamWriter file = new System.IO.StreamWriter(@"items.csv", false);
+                System.IO.StreamWriter file;
+                HSSFWorkbook wb;
+                HSSFSheet sh;
+
+                //System.Web.HttpContext.Current.Response.Write("Some Text");
+                SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+                saveFileDialog1.Filter = "Comma separated values|*.csv";
+                saveFileDialog1.Title = "Save an CSV File";
+                saveFileDialog1.DefaultExt = "csv";
+                DialogResult? result = saveFileDialog1.ShowDialog();
+                string location = "";
+                if (result == DialogResult.OK)
                 {
-
-                    file = new System.IO.StreamWriter(dlgstream);
-
-                    //System.IO.StreamWriter file = new System.IO.StreamWriter(Response.OutputStream, Encoding.UTF8);
-
-                    //Console.WriteLine(OSUtil.ispravkaVrijednosti(double.Parse(inputNabavnaVrednost.Text), DateTime.ParseExact("2017-05-30", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture), double.Parse(inputStopaAmortizacije.Text)));
-                    List<OSItem> itemsForListCSV = itemsForList.items;
-
-
-
-                    Type myType = typeof(OSItem);
-                    IList<PropertyInfo> props = new List<PropertyInfo>(myType.GetProperties());
-                    Console.WriteLine(props.Count);
-                    //dgvPregled.ColumnCount = props.Count;
-                    for (int i = 0; i < props.Count; i++)
+                    //Console.WriteLine(saveFileDialog1.);
+                    System.IO.Stream dlgstream;
+                    if ((dlgstream = saveFileDialog1.OpenFile()) != null)
                     {
-                        //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
-                        //object propValue = prop.GetValue(myObject, null);
-                        //dgvPregled.Columns[i].Name = props.ElementAt(i).Name;
-                        //file.Write( props.ElementAt(i).Name + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                        file.Write(OSUtil.columnNames[props.ElementAt(i).Name] + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                        // Do something with propValue
-                    }
 
-                    foreach (OSItem item in itemsForListCSV)
-                    {
-                        List<string> row = new List<string>();
+                        file = new System.IO.StreamWriter(dlgstream);
+
+                        //System.IO.StreamWriter file = new System.IO.StreamWriter(Response.OutputStream, Encoding.UTF8);
+
+                        //Console.WriteLine(OSUtil.ispravkaVrijednosti(double.Parse(inputNabavnaVrednost.Text), DateTime.ParseExact("2017-05-30", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture), double.Parse(inputStopaAmortizacije.Text)));
+                        List<OSItem> itemsForListCSV = itemsForList.items;
+
+
+
+                        Type myType = typeof(OSItem);
+                        IList<PropertyInfo> props = new List<PropertyInfo>(myType.GetProperties());
+                        Console.WriteLine(props.Count);
+                        //dgvPregled.ColumnCount = props.Count;
                         for (int i = 0; i < props.Count; i++)
                         {
-                            if (props.ElementAt(i).Name.StartsWith("datum"))
-                            {
-                                //row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy."));
-                                file.Write(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy.") + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                            }
-                            else
-                            {
-                                //row.Add(props.ElementAt(i).GetValue(item, null).ToString());
-                                file.Write(props.ElementAt(i).GetValue(item, null).ToString() + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                            }
                             //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
                             //object propValue = prop.GetValue(myObject, null);
-
+                            //dgvPregled.Columns[i].Name = props.ElementAt(i).Name;
+                            //file.Write( props.ElementAt(i).Name + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                            file.Write(OSUtil.columnNames[props.ElementAt(i).Name] + (i < props.Count - 1 ? ";" : Environment.NewLine));
                             // Do something with propValue
                         }
-                        //dgvPregled.Rows.Add(row.ToArray());
+
+                        foreach (OSItem item in itemsForListCSV)
+                        {
+                            List<string> row = new List<string>();
+                            for (int i = 0; i < props.Count; i++)
+                            {
+                                if (props.ElementAt(i).Name.StartsWith("datum"))
+                                {
+                                    //row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy."));
+                                    file.Write(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy.") + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                                }
+                                else if (props.ElementAt(i).Name.Equals("vrijednostNaDatum"))
+                                {
+                                    string value = props.ElementAt(i).GetValue(item, null).ToString();
+                                    if (value.Trim() == "-1")
+                                        value = "";
+                                    file.Write(value + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                                }
+                                else
+                                {
+                                    //row.Add(props.ElementAt(i).GetValue(item, null).ToString());
+                                    file.Write(props.ElementAt(i).GetValue(item, null).ToString() + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                                }
+                                //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
+                                //object propValue = prop.GetValue(myObject, null);
+
+                                // Do something with propValue
+                            }
+                            //dgvPregled.Rows.Add(row.ToArray());
+                        }
+                        location = saveFileDialog1.FileName;
+                        file.Close();
                     }
-                    file.Close();
                 }
+
+                MessageBox.Show("CSV fajl uspješno snimljen na lokaciju: \n" + location, "CSV snimljen", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex.Message, ex);
+                MessageBox.Show("Nije moguće snimiti CSV fajl.\nError: " + ex.Message, "Error saving XLS", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -618,88 +671,107 @@ namespace OsnovnaSredstva
 
         private void btnXLS_Click(object sender, EventArgs e)
         {
-            //System.IO.StreamWriter file = new System.IO.StreamWriter(@"items.csv", false);
-            System.IO.StreamWriter file;
-            HSSFWorkbook wb;
-            HSSFSheet sh;
-
-            //System.Web.HttpContext.Current.Response.Write("Some Text");
-            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-            saveFileDialog1.Filter = "Exel file|*.xls";
-            saveFileDialog1.Title = "Save an Excel File";
-            saveFileDialog1.DefaultExt = "csv";
-            DialogResult? result = saveFileDialog1.ShowDialog();
-            if (result == DialogResult.OK)
+            try
             {
-                //Console.WriteLine(saveFileDialog1.);
-                System.IO.Stream dlgstream;
+                //System.IO.StreamWriter file = new System.IO.StreamWriter(@"items.csv", false);
+                System.IO.StreamWriter file;
+                HSSFWorkbook wb;
+                HSSFSheet sh;
 
-
-                if ((dlgstream = saveFileDialog1.OpenFile()) != null)
+                //System.Web.HttpContext.Current.Response.Write("Some Text");
+                SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+                saveFileDialog1.Filter = "Exel file|*.xls";
+                saveFileDialog1.Title = "Save an Excel File";
+                saveFileDialog1.DefaultExt = "csv";
+                DialogResult? result = saveFileDialog1.ShowDialog();
+                string location = "";
+                if (result == DialogResult.OK)
                 {
+                    //Console.WriteLine(saveFileDialog1.);
+                    System.IO.Stream dlgstream;
 
-                    if (saveFileDialog1.FilterIndex == 1)
+
+                    if ((dlgstream = saveFileDialog1.OpenFile()) != null)
                     {
-                        int rowcount = 0;
-                        wb = HSSFWorkbook.Create(InternalWorkbook.CreateWorkbook());
-                        sh = (HSSFSheet)wb.CreateSheet("Lista amortizacije za datum " + dtAmortizacije.Value.ToString("dd.MM.yyyy"));
-                        //file = new System.IO.StreamWriter(dlgstream);
 
-                        //System.IO.StreamWriter file = new System.IO.StreamWriter(Response.OutputStream, Encoding.UTF8);
-
-                        //Console.WriteLine(OSUtil.ispravkaVrijednosti(double.Parse(inputNabavnaVrednost.Text), DateTime.ParseExact("2017-05-30", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture), double.Parse(inputStopaAmortizacije.Text)));
-                        List<OSItem> itemsForListCSV = itemsForList.items;
-
-
-
-                        Type myType = typeof(OSItem);
-                        IList<PropertyInfo> props = new List<PropertyInfo>(myType.GetProperties());
-                        Console.WriteLine(props.Count);
-                        //dgvPregled.ColumnCount = props.Count;
-                        NPOI.SS.UserModel.IRow row = sh.CreateRow(rowcount);
-                        for (int i = 0; i < props.Count; i++)
+                        if (saveFileDialog1.FilterIndex == 1)
                         {
+                            int rowcount = 0;
+                            wb = HSSFWorkbook.Create(InternalWorkbook.CreateWorkbook());
+                            sh = (HSSFSheet)wb.CreateSheet("Lista amortizacije za datum " + dtAmortizacije.Value.ToString("dd.MM.yyyy"));
+                            //file = new System.IO.StreamWriter(dlgstream);
 
-                            //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
-                            //object propValue = prop.GetValue(myObject, null);
-                            //dgvPregled.Columns[i].Name = props.ElementAt(i).Name;
-                            //file.Write( props.ElementAt(i).Name + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                            //file.Write(OSUtil.columnNames[props.ElementAt(i).Name] + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                            // Do something with propValue
-                            var cell = row.CreateCell(i);
-                            cell.SetCellValue(OSUtil.columnNames[props.ElementAt(i).Name]);
-                        }
-                        rowcount++;
-                        foreach (OSItem item in itemsForListCSV)
-                        {
-                            row = sh.CreateRow(rowcount);
+                            //System.IO.StreamWriter file = new System.IO.StreamWriter(Response.OutputStream, Encoding.UTF8);
+
+                            //Console.WriteLine(OSUtil.ispravkaVrijednosti(double.Parse(inputNabavnaVrednost.Text), DateTime.ParseExact("2017-05-30", "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), DateTime.ParseExact(inputDatumAmortizacije.Text, "dd.MM.yyyy.", System.Globalization.CultureInfo.InvariantCulture), double.Parse(inputStopaAmortizacije.Text)));
+                            List<OSItem> itemsForListCSV = itemsForList.items;
+
+
+
+                            Type myType = typeof(OSItem);
+                            IList<PropertyInfo> props = new List<PropertyInfo>(myType.GetProperties());
+                            Console.WriteLine(props.Count);
+                            //dgvPregled.ColumnCount = props.Count;
+                            NPOI.SS.UserModel.IRow row = sh.CreateRow(rowcount);
                             for (int i = 0; i < props.Count; i++)
                             {
-                                var cell = row.CreateCell(i);
-                                if (props.ElementAt(i).Name.StartsWith("datum"))
-                                {
-                                    //row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy."));
-                                    //file.Write(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy.") + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                                    cell.SetCellValue(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy."));
-                                }
-                                else
-                                {
-                                    //row.Add(props.ElementAt(i).GetValue(item, null).ToString());
-                                    //file.Write(props.ElementAt(i).GetValue(item, null).ToString() + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                                    cell.SetCellValue(props.ElementAt(i).GetValue(item, null).ToString());
-                                }
+
                                 //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
                                 //object propValue = prop.GetValue(myObject, null);
-
+                                //dgvPregled.Columns[i].Name = props.ElementAt(i).Name;
+                                //file.Write( props.ElementAt(i).Name + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                                //file.Write(OSUtil.columnNames[props.ElementAt(i).Name] + (i < props.Count - 1 ? ";" : Environment.NewLine));
                                 // Do something with propValue
+                                var cell = row.CreateCell(i);
+                                cell.SetCellValue(OSUtil.columnNames[props.ElementAt(i).Name]);
                             }
-                            //dgvPregled.Rows.Add(row.ToArray());
                             rowcount++;
+                            foreach (OSItem item in itemsForListCSV)
+                            {
+                                row = sh.CreateRow(rowcount);
+                                for (int i = 0; i < props.Count; i++)
+                                {
+                                    var cell = row.CreateCell(i);
+                                    if (props.ElementAt(i).Name.StartsWith("datum"))
+                                    {
+                                        //row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy."));
+                                        //file.Write(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture).ToString("dd.MM.yyyy.") + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                                        cell.SetCellValue(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy."));
+                                    }
+                                    else if (props.ElementAt(i).Name.Equals("vrijednostNaDatum"))
+                                    {
+                                        string value = props.ElementAt(i).GetValue(item, null).ToString();
+                                        if (value.Trim() == "-1")
+                                            value = "";
+                                        cell.SetCellValue(value);
+                                    }
+                                    else
+                                    {
+                                        //row.Add(props.ElementAt(i).GetValue(item, null).ToString());
+                                        //file.Write(props.ElementAt(i).GetValue(item, null).ToString() + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                                        cell.SetCellValue(props.ElementAt(i).GetValue(item, null).ToString());
+                                    }
+                                    //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
+                                    //object propValue = prop.GetValue(myObject, null);
+
+                                    // Do something with propValue
+                                }
+                                //dgvPregled.Rows.Add(row.ToArray());
+                                rowcount++;
+                            }
+                            wb.Write(dlgstream);
+                            location = saveFileDialog1.FileName;
+                            dlgstream.Close();
                         }
-                        wb.Write(dlgstream);
-                        dlgstream.Close();
                     }
                 }
+
+                MessageBox.Show("XLS fajl uspješno snimljen na lokaciju: \n" + location, "XLS snimljen", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex.Message, ex);
+                MessageBox.Show("Nije moguće snimiti XLS fajl.\nError: " + ex.Message, "Error saving XLS", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -725,7 +797,7 @@ namespace OsnovnaSredstva
 
         private void dgvPregled_RowEnter(object sender, DataGridViewCellEventArgs e)
         {
-            Console.WriteLine("Row enter "+e.RowIndex);
+            Console.WriteLine("Row enter " + e.RowIndex);
             DataGridView dgv = (DataGridView)sender;
 
 
@@ -755,15 +827,42 @@ namespace OsnovnaSredstva
                 FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(dtAmortizacije.Value));
         }
 
+        private void cbEnablePocetniDatum_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckBox cb = (CheckBox)sender;
+            if (cb.Checked)
+            {
+                dtPocetniDatumAmortizacije.Enabled = true;
+            }
+            else
+            {
+                dtPocetniDatumAmortizacije.Enabled = false;
+            }
+            fcvListId = Guid.NewGuid();
+        }
+
+        private void dtPocetniDatumAmortizacije_ValueChanged(object sender, EventArgs e)
+        {
+            fcvListId = Guid.NewGuid();
+        }
+
         private void btnSearch_Click_1(object sender, EventArgs e)
         {
             if (fcvListId != lastSearchFcvListID)
             {
-                if (fcvlist.Count > 0)
-                    FillGridView(DBManager.GetAllWithFilter(fcvlist, dtAmortizacije.Value));
-                else
-                    FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(dtAmortizacije.Value));
-
+                if (cbEnablePocetniDatum.Checked)
+                {
+                    if (fcvlist.Count > 0)
+                        FillGridView(DBManager.GetAllWithFilterWithStartDate(fcvlist, dtPocetniDatumAmortizacije.Value.Date, dtAmortizacije.Value.Date));
+                    else
+                        FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednostWithStartDate(dtPocetniDatumAmortizacije.Value.Date, dtAmortizacije.Value.Date));
+                }
+                else {
+                    if (fcvlist.Count > 0)
+                        FillGridView(DBManager.GetAllWithFilter(fcvlist, dtAmortizacije.Value.Date));
+                    else
+                        FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(dtAmortizacije.Value.Date));
+                }
                 lastSearchFcvListID = fcvListId;
             }
         }

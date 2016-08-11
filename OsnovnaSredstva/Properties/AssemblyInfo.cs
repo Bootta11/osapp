@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Osnovna Sredstva")]
-[assembly: AssemblyDescription("Aplikacija sa unos i čuvanje osnovnih sredstava")]
+[assembly: AssemblyDescription("Program za vodjenje evidencije osnovnih sredstava.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Bootta")]
 [assembly: AssemblyProduct("OOSnovnaSredstva")]
@@ -36,4 +36,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 [assembly: NeutralResourcesLanguage("bs-Latn")]
+[assembly: log4net.Config.XmlConfigurator(Watch = true)]
 

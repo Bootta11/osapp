@@ -14,17 +14,20 @@ using System.Configuration;
 using System.Drawing.Printing;
 using System.Reflection;
 using System.Windows.Input;
+using log4net;
 
 namespace OsnovnaSredstva
 {
+
     public partial class Form1 : Form
     {
+        private readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public static Form staticForm;
         static Label lblMessageHolderForTimer = null;
         string izmijenitiItemId = null;
         static string korisnik = "";
         public static CultureInfo culture;
-
+        static Podesavanja podesavanja;
         public static void setKorisnik(string k)
         {
             korisnik = k;
@@ -32,10 +35,13 @@ namespace OsnovnaSredstva
         public Form1()
         {
             InitializeComponent();
+            log4net.Config.XmlConfigurator.Configure();
             OSUtil.init();
+            DBManager.init();
+            podesavanja = new Podesavanja();
             // Opens an unencrypted database
 
-            DBManager.init();
+
             AppSettingsReader settings = new AppSettingsReader();
             string strculture = (string)settings.GetValue("DefaultCulture", typeof(string));
             Console.WriteLine(strculture);
@@ -47,18 +53,34 @@ namespace OsnovnaSredstva
             inputKolicina.TextChanged += textbox_OnlyNumbersAndDecimal;
             inputNabavnaVrednost.TextChanged += textbox_OnlyNumbersAndDecimal;
             inputVek.TextChanged += textbox_OnlyNumbersAndDecimal;
-            inputBrojPoNabavci.TextChanged += textbox_OnlyNumbers;
+            inputStopaAmortizacije.TextChanged += textbox_OnlyNumbersAndDecimal;
 
             inputKolicina.LostFocus += textbox_OnlyNumbersAndDecimal;
             inputNabavnaVrednost.LostFocus += textbox_OnlyNumbersAndDecimal;
             inputVek.LostFocus += textbox_OnlyNumbersAndDecimal;
-            inputBrojPoNabavci.LostFocus += textbox_OnlyNumbers;
+            inputStopaAmortizacije.LostFocus += textbox_OnlyNumbersAndDecimal;
             //Controls.SetChildIndex(pictureBox1, 0);
+
+            //add auto completion based on database content
+            inputKonto.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "konto");
+            inputDobavljac.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "dobavljac");
+            inputLokacija.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "lokacija");
+            inputNaziv.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "naziv");
+            inputRacunDokDobavljaca.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "racun_dok_dobavljaca");
+            inputSmjestaj.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "smjestaj");
+            inputjednicaMjere.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "jedinica_mjere");
+            inputRacunopolagac.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "racunopolagac");
+            inputPoreskeGrupe.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "poreske_grupe");
+            inputBrojPoNabavci.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "broj_po_nabavci");
+            inputAmortizacijaGrupe.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "amortizaciona_grupa");
 
             staticForm = this;
             addTabOnEnterPressToChildComponents(tblInput);
             inputMetodaAmortizacije.Items.Insert(0, "Linearna");
+            inputMetodaAmortizacije.SelectedIndex = 0;
             changeFontOfChildLabels(tblInput, new Font(label1.Font.FontFamily, (float)8));
+            clearInput(tblInput);
+
             inputInventurniBroj.Focus();
         }
 
@@ -135,7 +157,7 @@ namespace OsnovnaSredstva
             if (inputDobavljac.Text.Length < 1)
             {
                 requiredFiledsOK = false;
-                errorMsgs.Add("Nije unijet dobavljac");
+                errorMsgs.Add("Nije unijet dobavljač");
             }
             item.dobavljac = inputDobavljac.Text;
             item.racunDobavljaca = inputRacunDokDobavljaca.Text;
@@ -147,7 +169,7 @@ namespace OsnovnaSredstva
                 if (inputMetodaAmortizacije.SelectedIndex == -1)
                 {
                     requiredFiledsOK = false;
-                    errorMsgs.Add("Nije unet metod amortizacije");
+                    errorMsgs.Add("Nije unijet metod amortizacije");
                 }
                 else
                     item.metodaAmortizacije = inputMetodaAmortizacije.Items[inputMetodaAmortizacije.SelectedIndex].ToString();
@@ -158,16 +180,7 @@ namespace OsnovnaSredstva
                 parseOK = false;
             }
             item.poreskeGrupe = inputPoreskeGrupe.Text;
-            parseOK = int.TryParse(inputBrojPoNabavci.Text, out tempInt);
-            if (!int.TryParse(inputBrojPoNabavci.Text, out tempInt))
-            {
-                parseOK = false;
-                requiredFiledsOK = false;
-                errorMsgs.Add("Nije unet broj po nabavci");
-            }
-            else
-                item.brojPoNabavci = tempInt;
-            tempInt = 0;
+            item.brojPoNabavci = inputBrojPoNabavci.Text;
             item.amortizacionaGrupa = inputAmortizacijaGrupe.Text;
             AppSettingsReader settings = new AppSettingsReader();
             string strculture = (string)settings.GetValue("DefaultCulture", typeof(string));
@@ -213,7 +226,7 @@ namespace OsnovnaSredstva
                     }
                     else
                     {
-                        showErrorMessage("Error: Nije moguce unijeti novo OS sa postojećim inventurnim brojem");
+                        showErrorMessage("Error: Nije moguće unijeti novo OS sa postojećim inventurnim brojem");
                     }
                 }
                 else if (msg == SQLiteErrorCode.NotFound)
@@ -221,7 +234,7 @@ namespace OsnovnaSredstva
                     showErrorMessage("Error: OS nije izmijenjen");
                 }
                 else
-                    showErrorMessage("Error: Nije moguce unijeti novo OS");
+                    showErrorMessage("Error: Nije moguće unijeti novo OS");
             }
             else
             {
@@ -247,7 +260,7 @@ namespace OsnovnaSredstva
 
         private void inputDatumNabavke_ValueChanged_1(object sender, EventArgs e)
         {
-            Console.WriteLine(inputDatumNabavke.Text);
+
             inputDatumAmortizacije.MinDate = inputDatumNabavke.Value;
 
             inputDatumOtpisa.MinDate = inputDatumNabavke.Value;
@@ -265,13 +278,6 @@ namespace OsnovnaSredstva
             }
         }
 
-        private void inputDatumOtpisa_ValueChanged(object sender, EventArgs e)
-        {
-            inputDatumAmortizacije.MaxDate = inputDatumOtpisa.Value;
-            inputDatumVrijednosti.MaxDate = inputDatumOtpisa.Value;
-            inputDatumNabavke.MaxDate = inputDatumOtpisa.Value;
-            // CalculateIspravkaVrijednostiSadasnjaVrijednost();
-        }
 
         public void CalculateIspravkaVrijednostiSadasnjaVrijednost()
         {
@@ -295,8 +301,9 @@ namespace OsnovnaSredstva
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                log.Error("Error izračunavanja ispravke vrijednosti", ex);
             }
-            Console.WriteLine("Opa");
+
         }
 
         private void inputStopaAmortizacije_Leave(object sender, EventArgs e)
@@ -311,7 +318,7 @@ namespace OsnovnaSredstva
             if (System.Text.RegularExpressions.Regex.IsMatch(tb.Text, "[^0-9]"))
             {
                 tb.Text = tb.Text.Substring(0, tb.Text.Length - 1);
-                lblMessage.Text = "Please enter only numbers.";
+                lblMessage.Text = "Dozvoljen je samo unos brojeva.";
                 //tb.Text.Remove(tb.Text.Length - 1);
                 lblMessage.BackColor = Color.White;
                 lblMessage.BorderStyle = BorderStyle.FixedSingle;
@@ -334,7 +341,15 @@ namespace OsnovnaSredstva
             if (System.Text.RegularExpressions.Regex.IsMatch(tb.Text, "[^0-9" + CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator + "]"))
             {
                 tb.Text = tb.Text.Substring(0, tb.Text.Length - 1);
-                lblMessage.Text = "Please enter only numbers and decimal.";
+                string separator;
+                if (CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator == ",")
+                    separator = "zarez";
+                else if (CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator == ".")
+                    separator = "tačka";
+                else
+                    separator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+
+                lblMessage.Text = "Dozvoljen je samo unos brojeva i decimalnog separatora(" + (CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator == "," ? "zarez" : "tačka") + ").";
                 lblMessage.BackColor = Color.White;
                 lblMessage.BorderStyle = BorderStyle.FixedSingle;
                 tb.SelectionStart = tb.Text.Length;
@@ -509,9 +524,11 @@ namespace OsnovnaSredstva
         private void Control_KeyPress(object sender, KeyPressEventArgs e)
         {
             Console.WriteLine("Pressed");
+
             if (e.KeyChar == (char)Keys.Enter)
             {
-                btnSnimiti.PerformClick();
+                this.SelectNextControl((Control)sender, true, true, true, true);
+                //btnSnimiti.PerformClick();
                 e.Handled = true;
             }
         }
@@ -529,9 +546,7 @@ namespace OsnovnaSredstva
             inputjednicaMjere.Text = item.jedinicaMjere;
             inputVek.Text = item.vek.ToString("0.000");
             inputDobavljac.Text = item.dobavljac;
-            inputDobavljac.Text = item.dobavljac;
             inputRacunopolagac.Text = item.racunopolagac;
-            inputLokacija.Text = item.lokacija;
             inputSmjestaj.Text = item.smjestaj;
             inputMetodaAmortizacije.SelectedIndex = inputMetodaAmortizacije.Items.IndexOf(item.metodaAmortizacije);
             inputPoreskeGrupe.Text = item.poreskeGrupe;
@@ -577,5 +592,63 @@ namespace OsnovnaSredstva
                 inputDatumOtpisa.Value = OSUtil.calculateDatumOtpisa(inputDatumAmortizacije.Value, stopAmortizacije);
             }
         }
+
+        private void inputDatumOtpisa_ValueChanged_1(object sender, EventArgs e)
+        {
+            inputDatumAmortizacije.MaxDate = inputDatumOtpisa.Value;
+            inputDatumVrijednosti.MaxDate = inputDatumOtpisa.Value;
+            inputDatumNabavke.MaxDate = inputDatumOtpisa.Value;
+            // CalculateIspravkaVrijednostiSadasnjaVrijednost();
+        }
+
+
+
+        private void inputDobavljac_TextChanged_DB_Column_Name(object sender, EventArgs e, string dbColumnName)
+        {
+            try
+            {
+                TextBox tb = (TextBox)sender;
+                if (tb.Text.Length > 0 && podesavanja.automatskoZavrsavanjeRijeci)
+                {
+                    List<string> autoStringCollList = DBManager.GetAllFromColumnAsStringsDistinct(dbColumnName, tb.Text);
+                    if (autoStringCollList.Count > 0)
+                    {
+                        tb.AutoCompleteMode = AutoCompleteMode.Suggest;
+                        tb.AutoCompleteSource = AutoCompleteSource.CustomSource;
+                        AutoCompleteStringCollection coll = new AutoCompleteStringCollection();
+                        foreach (string s in autoStringCollList)
+                        {
+                            coll.Add(s);
+                        }
+                        tb.AutoCompleteCustomSource = coll;
+                    }
+
+                }
+                else
+                {
+                    tb.AutoCompleteMode = AutoCompleteMode.None;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                log.Error("Error na aktiviranju automatskog završavanja riječi pri unosu", ex);
+            }
+        }
+
+        private void oProgramuToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            new About().Show();
+        }
+
+        private void podesavanjaToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            podesavanja.ShowDialog();
+
+        }
+
+
+
+
     }
 }
