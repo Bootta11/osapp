@@ -135,6 +135,8 @@ namespace OsnovnaSredstva
                 if (reader.Read())
                 {
                     OSItem item = new OSItem();
+                    DateTime tempDate;
+                    string tempStr;
                     //numRows = Convert.ToInt32(reader["cnt"]);
                     item.id = reader["id"].ToString();
 
@@ -157,7 +159,7 @@ namespace OsnovnaSredstva
 
                     item.datumAmortizacije = DateTime.ParseExact(reader["datum_amortizacije"].ToString(), "yyyy-MM-dd HH:mm:ss", provider).ToString("dd.MM.yyyy.");
 
-                    item.datumVrijednosti = DateTime.ParseExact(reader["datum_vrijednosti"].ToString(), "yyyy-MM-dd HH:mm:ss", provider).ToString("dd.MM.yyyy.");
+                    item.datumVrijednosti = OSUtil.LongDateToShortDateString(reader["datum_vrijednosti"].ToString());
 
                     item.vrijednostNaDatum = double.Parse(reader.GetString(readerColumns.IndexOf("vr_na_datum_amortizacije")), Form1.culture);
 
@@ -281,6 +283,8 @@ namespace OsnovnaSredstva
                 while (reader.Read())
                 {
                     OSItem item = new OSItem();
+                    DateTime tempDate;
+                    string tempStr;
                     //numRows = Convert.ToInt32(reader["cnt"]);
                     item.id = reader["id"].ToString();
                     if (!lwf.fieldMaxLength.ContainsKey("id")) lwf.fieldMaxLength.Add("id", "ID");
@@ -824,7 +828,7 @@ namespace OsnovnaSredstva
             return ret;
         }
 
-        public static ListWithFieldMaxLengths GetAllSaIspravkaVrijednostiISadasnjaVrijednostWithStartDate(DateTime startDate,DateTime endDate)
+        public static ListWithFieldMaxLengths GetAllSaIspravkaVrijednostiISadasnjaVrijednostWithStartDate(DateTime startDate, DateTime endDate)
         {
             ListWithFieldMaxLengths ret = new ListWithFieldMaxLengths();
             try
@@ -840,14 +844,14 @@ namespace OsnovnaSredstva
                     {
                         vrijednostNaDatum = item.vrijednostNaDatum;
                         sadasnjaVrijednost = vrijednostNaDatum;
-                        
+
                         DateTime datumVrijednosti = DateTime.ParseExact(item.datumVrijednosti, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
                         item.ispravkaVrijednosti = Math.Round(OSUtil.ispravkaVrijednostiNaDatum(item.nabavnaVrijednost, endDate, startDate, item.stopaAmortizacije, vrijednostNaDatum, datumVrijednosti), 5);
                     }
                     else
                     {
                         sadasnjaVrijednost = item.nabavnaVrijednost;
-                        
+
                         item.ispravkaVrijednosti = Math.Round(OSUtil.ispravkaVrijednosti(item.nabavnaVrijednost, endDate, startDate, item.stopaAmortizacije), 5);
                     }
                     if (!ret.fieldMaxLength.ContainsKey("ispravkaVrijednosti")) ret.fieldMaxLength.Add("ispravkaVrijednosti", item.ispravkaVrijednosti.ToString());

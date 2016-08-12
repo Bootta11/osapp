@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace OsnovnaSredstva
 {
-    static class OSUtil
+    public static class OSUtil
     {
         public static Dictionary<string, string> columnNames;
         public static Dictionary<string, string> columnNamesToTableMapping;
@@ -289,6 +289,18 @@ namespace OsnovnaSredstva
         public static double strtodbl(string str)
         {
             double ret = 0;
+
+            return ret;
+        }
+
+        public static string LongDateToShortDateString(string longDate)
+        {
+            string ret = "";
+            DateTime tempDate;
+            if (DateTime.TryParseExact(longDate, "yyyy-MM-dd HH:mm:ss", Form1.culture, System.Globalization.DateTimeStyles.None, out tempDate))
+                ret = tempDate.ToString("dd.MM.yyyy.");
+            else
+                ret = "";
 
             return ret;
         }

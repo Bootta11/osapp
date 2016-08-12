@@ -85,7 +85,17 @@ namespace OsnovnaSredstva
                 {
                     if (props.ElementAt(i).Name.StartsWith("datum"))
                     {
-                        row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy."));
+                        if (props.ElementAt(i).Name.Equals("datumVrijednosti"))
+                        {
+                            if (item.vrijednostNaDatum.ToString().Trim() == "-1")
+                                row.Add("");
+                            else
+                                row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy."));
+                        }
+                        else
+                        {
+                            row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy."));
+                        }
                     }
                     else if (props.ElementAt(i).Name.StartsWith("vrijednostNaDatum"))
                     {
@@ -228,7 +238,7 @@ namespace OsnovnaSredstva
             }
             else
             {
-                graphics.DrawString("Lista osnovnih sredstava na dan " + dtAmortizacije.Value.ToString("dd.MM.yyyy.") , font, Brushes.Black, offsetX, offsetY);
+                graphics.DrawString("Lista osnovnih sredstava na dan " + dtAmortizacije.Value.ToString("dd.MM.yyyy."), font, Brushes.Black, offsetX, offsetY);
             }
 
             offsetX = startX;
@@ -857,7 +867,8 @@ namespace OsnovnaSredstva
                     else
                         FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednostWithStartDate(dtPocetniDatumAmortizacije.Value.Date, dtAmortizacije.Value.Date));
                 }
-                else {
+                else
+                {
                     if (fcvlist.Count > 0)
                         FillGridView(DBManager.GetAllWithFilter(fcvlist, dtAmortizacije.Value.Date));
                     else

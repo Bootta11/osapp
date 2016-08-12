@@ -647,8 +647,26 @@ namespace OsnovnaSredstva
 
         }
 
+        private void inputDatumVrijednosti_EnabledChanged(object sender, EventArgs e)
+        {
+            Console.WriteLine("Enabled dtvr");
+        }
 
-
-
+        private void inputDatumVrijednosti_ValueChanged(object sender, EventArgs e)
+        {
+            DateTimePicker dtp = (DateTimePicker)sender;
+            if (dtp.Checked)
+            {
+                inputVrijednostNaDatumAmortizacije.Enabled = true;
+                inputDatumVrijednosti.TabStop = true;
+            }
+            else
+            {
+                inputVrijednostNaDatumAmortizacije.Text = "";
+                inputVrijednostNaDatumAmortizacije.Enabled = false;
+                inputDatumVrijednosti.TabStop = false;
+            }
+            
+        }
     }
 }
