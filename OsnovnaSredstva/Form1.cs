@@ -28,6 +28,8 @@ namespace OsnovnaSredstva
         static string korisnik = "";
         public static CultureInfo culture;
         static Podesavanja podesavanja;
+        
+
         public static void setKorisnik(string k)
         {
             korisnik = k;
@@ -66,6 +68,7 @@ namespace OsnovnaSredstva
             inputDobavljac.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "dobavljac");
             inputLokacija.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "lokacija");
             inputNaziv.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "naziv");
+            //inputRacunDokDobavljaca.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "racun_dok_dobavljaca");
             inputRacunDokDobavljaca.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "racun_dok_dobavljaca");
             inputSmjestaj.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "smjestaj");
             inputjednicaMjere.TextChanged += (sender, e) => inputDobavljac_TextChanged_DB_Column_Name(sender, e, "jedinica_mjere");
@@ -95,7 +98,7 @@ namespace OsnovnaSredstva
             bool parseOK = true;
             bool requiredFiledsOK = true;
             double temp = 0;
-            int tempInt = 0;
+
             OSItem item = new OSItem();
             if (izmijenitiItemId != null)
                 item.id = izmijenitiItemId;
@@ -134,7 +137,9 @@ namespace OsnovnaSredstva
             else
                 item.konto = inputKonto.Text;
             item.datumAmortizacije = inputDatumAmortizacije.Text;
+
             item.datumVrijednosti = inputDatumVrijednosti.Text;
+
             //item.ispravkaVrijednosti = double.Parse(inputIspravkaVrijednosti.Text);
 
             if (!double.TryParse(inputVek.Text.Replace('.', ','), out temp))
@@ -219,7 +224,8 @@ namespace OsnovnaSredstva
                         if (result == SQLiteErrorCode.Ok)
                         {
                             izmijenitiItemId = null;
-                            clearInput(tblInput);
+                            if (podesavanja.brisanjeUnosaPriUspjesnoSacuvanomUnosu)
+                                clearInput(tblInput);
                             showSuccessMessage("OS sa inventurnim brojem " + item.inventurniBroj + " je izmjenjeno");
                             //showErrorMessage("OS sa inventurnim brojem " + item.inventurniBroj + "je izmjenjeno");
                         }
@@ -239,8 +245,8 @@ namespace OsnovnaSredstva
             else
             {
 
-
-                clearInput(tblInput);
+                if (podesavanja.brisanjeUnosaPriUspjesnoSacuvanomUnosu)
+                    clearInput(tblInput);
                 showSuccessMessage("OS uspjesno sačuvano u bazu");
             }
             inputInventurniBroj.Focus();
@@ -437,6 +443,8 @@ namespace OsnovnaSredstva
             }
             else
             {
+                login.cleanForm();
+                login.Dispose();
                 this.Show();
                 inputInventurniBroj.Focus();
                 lblKorisnik.Text = "Korisnik: " + korisnik;
@@ -463,21 +471,29 @@ namespace OsnovnaSredstva
                 clearInput(c);
                 if (c.GetType() == typeof(DateTimePicker))
                 {
+                    
                     DateTimePicker dtp = (DateTimePicker)c;
+                    
                     if (DateTime.Now < dtp.MinDate)
                         dtp.Value = dtp.MinDate;
                     else if (DateTime.Now > dtp.MaxDate)
                         dtp.Value = dtp.MaxDate;
                     else
                         dtp.Value = DateTime.Now;
+                    if (dtp.Name == inputDatumVrijednosti.Name)
+                    {
+                        dtp.Checked = false;
+                    }
                 }
                 else if (c.GetType() == typeof(TextBox))
                 {
 
                     TextBox tb = (TextBox)c;
                     if (tb.Name != lblMessage.Name)
+
                         tb.Text = "";
                 }
+                
             }
         }
 
@@ -539,12 +555,16 @@ namespace OsnovnaSredstva
             izmijenitiItemId = item.id;
             inputInventurniBroj.Text = item.inventurniBroj;
             inputNaziv.Text = item.naziv;
-            inputKolicina.Text = item.kolicina.ToString("0.000");
-            inputNabavnaVrednost.Text = item.nabavnaVrijednost.ToString("0.000");
+            inputKolicina.Text = OSUtil.dbl_to_str(item.kolicina);
+            inputNabavnaVrednost.Text = OSUtil.dbl_to_str(item.nabavnaVrijednost);
             inputKonto.Text = item.konto;
+            if (item.vrijednostNaDatum < 0)
+                inputDatumVrijednosti.Checked = false;
+            else
+                inputDatumVrijednosti.Value = DateTime.ParseExact(item.datumVrijednosti, "dd.MM.yyyy.", provider);
             inputVrijednostNaDatumAmortizacije.Text = item.vrijednostNaDatum < 0 ? "" : item.vrijednostNaDatum.ToString();
             inputjednicaMjere.Text = item.jedinicaMjere;
-            inputVek.Text = item.vek.ToString("0.000");
+            inputVek.Text = OSUtil.dbl_to_str(item.vek);
             inputDobavljac.Text = item.dobavljac;
             inputRacunopolagac.Text = item.racunopolagac;
             inputSmjestaj.Text = item.smjestaj;
@@ -552,11 +572,11 @@ namespace OsnovnaSredstva
             inputPoreskeGrupe.Text = item.poreskeGrupe;
             inputAmortizacijaGrupe.Text = item.amortizacionaGrupa;
             inputBrojPoNabavci.Text = item.brojPoNabavci.ToString();
-            inputStopaAmortizacije.Text = item.stopaAmortizacije.ToString("0.000");
+            inputStopaAmortizacije.Text = OSUtil.dbl_to_str(item.stopaAmortizacije);
             inputDatumNabavke.Value = DateTime.ParseExact(item.datumNabavke, "dd.MM.yyyy.", provider);
             inputDatumAmortizacije.Value = DateTime.ParseExact(item.datumAmortizacije, "dd.MM.yyyy.", provider);
             inputDatumOtpisa.Value = DateTime.ParseExact(item.datumOtpisa, "dd.MM.yyyy.", provider);
-            inputDatumVrijednosti.Value = DateTime.ParseExact(item.datumVrijednosti, "dd.MM.yyyy.", provider);
+
         }
 
         public void changeFontOfChildLabels(Control control, Font font)
@@ -605,12 +625,14 @@ namespace OsnovnaSredstva
 
         private void inputDobavljac_TextChanged_DB_Column_Name(object sender, EventArgs e, string dbColumnName)
         {
+
             try
             {
+
                 TextBox tb = (TextBox)sender;
                 if (tb.Text.Length > 0 && podesavanja.automatskoZavrsavanjeRijeci)
                 {
-                    List<string> autoStringCollList = DBManager.GetAllFromColumnAsStringsDistinct(dbColumnName, tb.Text);
+                    List<string> autoStringCollList = DBManager.GetAllFromColumnAsStringsDistinct(dbColumnName, "id", "DESC", tb.Text, 5);
                     if (autoStringCollList.Count > 0)
                     {
                         tb.AutoCompleteMode = AutoCompleteMode.Suggest;
@@ -626,7 +648,7 @@ namespace OsnovnaSredstva
                 }
                 else
                 {
-                    tb.AutoCompleteMode = AutoCompleteMode.None;
+                    //tb.AutoCompleteMode = AutoCompleteMode.None;
                 }
             }
             catch (Exception ex)
@@ -634,6 +656,7 @@ namespace OsnovnaSredstva
                 Console.WriteLine(ex.Message);
                 log.Error("Error na aktiviranju automatskog završavanja riječi pri unosu", ex);
             }
+
         }
 
         private void oProgramuToolStripMenuItem_Click(object sender, EventArgs e)
@@ -647,10 +670,7 @@ namespace OsnovnaSredstva
 
         }
 
-        private void inputDatumVrijednosti_EnabledChanged(object sender, EventArgs e)
-        {
-            Console.WriteLine("Enabled dtvr");
-        }
+
 
         private void inputDatumVrijednosti_ValueChanged(object sender, EventArgs e)
         {
@@ -666,7 +686,20 @@ namespace OsnovnaSredstva
                 inputVrijednostNaDatumAmortizacije.Enabled = false;
                 inputDatumVrijednosti.TabStop = false;
             }
-            
+
         }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            DBManager.closeConnection();
+        }
+
+        private void Control_KeyUp(object sender, KeyEventArgs e, string dbColumnName)
+        {
+
+
+        }
+
+
     }
 }

@@ -30,6 +30,19 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PregledForm));
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.btnIzbrisati = new System.Windows.Forms.Button();
+            this.lblUkupnoUnosa = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.btnSetpageSize = new System.Windows.Forms.Button();
+            this.topPage = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.btnNextPage = new System.Windows.Forms.Button();
+            this.btnPrevPage = new System.Windows.Forms.Button();
+            this.inputPageSize = new System.Windows.Forms.TextBox();
+            this.inputStrana = new System.Windows.Forms.TextBox();
+            this.cbEnablePocetniDatum = new System.Windows.Forms.CheckBox();
+            this.dtPocetniDatumAmortizacije = new System.Windows.Forms.DateTimePicker();
+            this.label3 = new System.Windows.Forms.Label();
             this.btnIzmijeniti = new System.Windows.Forms.Button();
             this.btnXLS = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -46,16 +59,13 @@
             this.label2 = new System.Windows.Forms.Label();
             this.brnKreirajCSV = new System.Windows.Forms.Button();
             this.btnPrint = new System.Windows.Forms.Button();
-            this.dgvPregled = new System.Windows.Forms.DataGridView();
-            this.dtPocetniDatumAmortizacije = new System.Windows.Forms.DateTimePicker();
-            this.label3 = new System.Windows.Forms.Label();
-            this.cbEnablePocetniDatum = new System.Windows.Forms.CheckBox();
+            this.dgvNew = new Syncfusion.Windows.Forms.Grid.GridControl();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.groupBox1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvPregled)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvNew)).BeginInit();
             this.SuspendLayout();
             // 
             // splitContainer1
@@ -71,6 +81,16 @@
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.BackgroundImage = global::OsnovnaSredstva.Properties.Resources.wov;
+            this.splitContainer1.Panel1.Controls.Add(this.btnIzbrisati);
+            this.splitContainer1.Panel1.Controls.Add(this.lblUkupnoUnosa);
+            this.splitContainer1.Panel1.Controls.Add(this.label5);
+            this.splitContainer1.Panel1.Controls.Add(this.btnSetpageSize);
+            this.splitContainer1.Panel1.Controls.Add(this.topPage);
+            this.splitContainer1.Panel1.Controls.Add(this.label4);
+            this.splitContainer1.Panel1.Controls.Add(this.btnNextPage);
+            this.splitContainer1.Panel1.Controls.Add(this.btnPrevPage);
+            this.splitContainer1.Panel1.Controls.Add(this.inputPageSize);
+            this.splitContainer1.Panel1.Controls.Add(this.inputStrana);
             this.splitContainer1.Panel1.Controls.Add(this.cbEnablePocetniDatum);
             this.splitContainer1.Panel1.Controls.Add(this.dtPocetniDatumAmortizacije);
             this.splitContainer1.Panel1.Controls.Add(this.label3);
@@ -85,13 +105,147 @@
             // 
             // splitContainer1.Panel2
             // 
-            this.splitContainer1.Panel2.Controls.Add(this.dgvPregled);
+            this.splitContainer1.Panel2.Controls.Add(this.dgvNew);
             this.splitContainer1.Panel2.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.splitContainer1.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.splitContainer1.Size = new System.Drawing.Size(904, 464);
             this.splitContainer1.SplitterDistance = 142;
             this.splitContainer1.TabIndex = 0;
             this.splitContainer1.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitContainer1_SplitterMoved);
+            // 
+            // btnIzbrisati
+            // 
+            this.btnIzbrisati.Enabled = false;
+            this.btnIzbrisati.Location = new System.Drawing.Point(92, 113);
+            this.btnIzbrisati.Name = "btnIzbrisati";
+            this.btnIzbrisati.Size = new System.Drawing.Size(75, 23);
+            this.btnIzbrisati.TabIndex = 27;
+            this.btnIzbrisati.Text = "Izbrisati";
+            this.btnIzbrisati.UseVisualStyleBackColor = true;
+            this.btnIzbrisati.Click += new System.EventHandler(this.btnObrisati_Click);
+            // 
+            // lblUkupnoUnosa
+            // 
+            this.lblUkupnoUnosa.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblUkupnoUnosa.AutoSize = true;
+            this.lblUkupnoUnosa.BackColor = System.Drawing.Color.Transparent;
+            this.lblUkupnoUnosa.Location = new System.Drawing.Point(772, 125);
+            this.lblUkupnoUnosa.Name = "lblUkupnoUnosa";
+            this.lblUkupnoUnosa.Size = new System.Drawing.Size(89, 13);
+            this.lblUkupnoUnosa.TabIndex = 26;
+            this.lblUkupnoUnosa.Text = "Ukupno unosa: 0";
+            // 
+            // label5
+            // 
+            this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.label5.AutoSize = true;
+            this.label5.BackColor = System.Drawing.Color.Transparent;
+            this.label5.Location = new System.Drawing.Point(730, 103);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(38, 13);
+            this.label5.TabIndex = 25;
+            this.label5.Text = "Strana";
+            // 
+            // btnSetpageSize
+            // 
+            this.btnSetpageSize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSetpageSize.Location = new System.Drawing.Point(846, 71);
+            this.btnSetpageSize.Name = "btnSetpageSize";
+            this.btnSetpageSize.Size = new System.Drawing.Size(51, 23);
+            this.btnSetpageSize.TabIndex = 24;
+            this.btnSetpageSize.Text = "Izaberi";
+            this.btnSetpageSize.UseVisualStyleBackColor = true;
+            this.btnSetpageSize.Click += new System.EventHandler(this.btnSetpageSize_Click);
+            // 
+            // topPage
+            // 
+            this.topPage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.topPage.Enabled = false;
+            this.topPage.Location = new System.Drawing.Point(839, 101);
+            this.topPage.Name = "topPage";
+            this.topPage.Size = new System.Drawing.Size(29, 20);
+            this.topPage.TabIndex = 23;
+            // 
+            // label4
+            // 
+            this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.label4.AutoSize = true;
+            this.label4.BackColor = System.Drawing.Color.Transparent;
+            this.label4.Location = new System.Drawing.Point(710, 76);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(85, 13);
+            this.label4.TabIndex = 22;
+            this.label4.Text = "Br. redova po str";
+            // 
+            // btnNextPage
+            // 
+            this.btnNextPage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnNextPage.Location = new System.Drawing.Point(874, 99);
+            this.btnNextPage.Name = "btnNextPage";
+            this.btnNextPage.Size = new System.Drawing.Size(24, 23);
+            this.btnNextPage.TabIndex = 21;
+            this.btnNextPage.Text = "<";
+            this.btnNextPage.UseVisualStyleBackColor = true;
+            this.btnNextPage.Click += new System.EventHandler(this.btnNextPage_Click);
+            // 
+            // btnPrevPage
+            // 
+            this.btnPrevPage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnPrevPage.Location = new System.Drawing.Point(774, 99);
+            this.btnPrevPage.Name = "btnPrevPage";
+            this.btnPrevPage.Size = new System.Drawing.Size(24, 23);
+            this.btnPrevPage.TabIndex = 20;
+            this.btnPrevPage.Text = ">";
+            this.btnPrevPage.UseVisualStyleBackColor = true;
+            this.btnPrevPage.Click += new System.EventHandler(this.btnPrevPage_Click);
+            // 
+            // inputPageSize
+            // 
+            this.inputPageSize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.inputPageSize.Location = new System.Drawing.Point(801, 73);
+            this.inputPageSize.Name = "inputPageSize";
+            this.inputPageSize.Size = new System.Drawing.Size(39, 20);
+            this.inputPageSize.TabIndex = 19;
+            // 
+            // inputStrana
+            // 
+            this.inputStrana.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.inputStrana.Location = new System.Drawing.Point(804, 101);
+            this.inputStrana.Name = "inputStrana";
+            this.inputStrana.Size = new System.Drawing.Size(29, 20);
+            this.inputStrana.TabIndex = 18;
+            // 
+            // cbEnablePocetniDatum
+            // 
+            this.cbEnablePocetniDatum.AutoSize = true;
+            this.cbEnablePocetniDatum.BackColor = System.Drawing.Color.Transparent;
+            this.cbEnablePocetniDatum.Location = new System.Drawing.Point(16, 9);
+            this.cbEnablePocetniDatum.Name = "cbEnablePocetniDatum";
+            this.cbEnablePocetniDatum.Size = new System.Drawing.Size(15, 14);
+            this.cbEnablePocetniDatum.TabIndex = 17;
+            this.cbEnablePocetniDatum.UseVisualStyleBackColor = false;
+            this.cbEnablePocetniDatum.CheckedChanged += new System.EventHandler(this.cbEnablePocetniDatum_CheckedChanged);
+            // 
+            // dtPocetniDatumAmortizacije
+            // 
+            this.dtPocetniDatumAmortizacije.CustomFormat = "dd.MM.yyyy.";
+            this.dtPocetniDatumAmortizacije.Enabled = false;
+            this.dtPocetniDatumAmortizacije.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dtPocetniDatumAmortizacije.Location = new System.Drawing.Point(172, 7);
+            this.dtPocetniDatumAmortizacije.Name = "dtPocetniDatumAmortizacije";
+            this.dtPocetniDatumAmortizacije.Size = new System.Drawing.Size(90, 20);
+            this.dtPocetniDatumAmortizacije.TabIndex = 16;
+            this.dtPocetniDatumAmortizacije.ValueChanged += new System.EventHandler(this.dtPocetniDatumAmortizacije_ValueChanged);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.BackColor = System.Drawing.Color.Transparent;
+            this.label3.Location = new System.Drawing.Point(37, 9);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(133, 13);
+            this.label3.TabIndex = 15;
+            this.label3.Text = "Pocetni datum amortizacije";
             // 
             // btnIzmijeniti
             // 
@@ -261,56 +415,24 @@
             this.btnPrint.UseVisualStyleBackColor = true;
             this.btnPrint.Click += new System.EventHandler(this.btnPrint_Click);
             // 
-            // dgvPregled
+            // dgvNew
             // 
-            this.dgvPregled.AllowUserToAddRows = false;
-            this.dgvPregled.AllowUserToOrderColumns = true;
-            this.dgvPregled.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
-            this.dgvPregled.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
-            this.dgvPregled.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvPregled.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvPregled.Location = new System.Drawing.Point(0, 0);
-            this.dgvPregled.Name = "dgvPregled";
-            this.dgvPregled.Size = new System.Drawing.Size(904, 318);
-            this.dgvPregled.TabIndex = 1;
-            this.dgvPregled.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPregled_CellValueChanged);
-            this.dgvPregled.RowEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPregled_RowEnter);
-            this.dgvPregled.RowLeave += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPregled_RowLeave);
-            this.dgvPregled.RowStateChanged += new System.Windows.Forms.DataGridViewRowStateChangedEventHandler(this.dgvPregled_RowStateChanged);
-            this.dgvPregled.UserDeletedRow += new System.Windows.Forms.DataGridViewRowEventHandler(this.dgvPregled_UserDeletedRow);
-            this.dgvPregled.UserDeletingRow += new System.Windows.Forms.DataGridViewRowCancelEventHandler(this.dgvPregled_UserDeletingRow);
-            // 
-            // dtPocetniDatumAmortizacije
-            // 
-            this.dtPocetniDatumAmortizacije.CustomFormat = "dd.MM.yyyy.";
-            this.dtPocetniDatumAmortizacije.Enabled = false;
-            this.dtPocetniDatumAmortizacije.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtPocetniDatumAmortizacije.Location = new System.Drawing.Point(172, 7);
-            this.dtPocetniDatumAmortizacije.Name = "dtPocetniDatumAmortizacije";
-            this.dtPocetniDatumAmortizacije.Size = new System.Drawing.Size(90, 20);
-            this.dtPocetniDatumAmortizacije.TabIndex = 16;
-            this.dtPocetniDatumAmortizacije.ValueChanged += new System.EventHandler(this.dtPocetniDatumAmortizacije_ValueChanged);
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.BackColor = System.Drawing.Color.Transparent;
-            this.label3.Location = new System.Drawing.Point(37, 9);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(133, 13);
-            this.label3.TabIndex = 15;
-            this.label3.Text = "Pocetni datum amortizacije";
-            // 
-            // cbEnablePocetniDatum
-            // 
-            this.cbEnablePocetniDatum.AutoSize = true;
-            this.cbEnablePocetniDatum.BackColor = System.Drawing.Color.Transparent;
-            this.cbEnablePocetniDatum.Location = new System.Drawing.Point(16, 9);
-            this.cbEnablePocetniDatum.Name = "cbEnablePocetniDatum";
-            this.cbEnablePocetniDatum.Size = new System.Drawing.Size(15, 14);
-            this.cbEnablePocetniDatum.TabIndex = 17;
-            this.cbEnablePocetniDatum.UseVisualStyleBackColor = false;
-            this.cbEnablePocetniDatum.CheckedChanged += new System.EventHandler(this.cbEnablePocetniDatum_CheckedChanged);
+            this.dgvNew.ColorStyles = Syncfusion.Windows.Forms.ColorStyles.Office2007Blue;
+            this.dgvNew.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.dgvNew.GridVisualStyles = Syncfusion.Windows.Forms.GridVisualStyles.Office2007Blue;
+            this.dgvNew.Location = new System.Drawing.Point(0, 0);
+            this.dgvNew.Name = "dgvNew";
+            this.dgvNew.Size = new System.Drawing.Size(904, 318);
+            this.dgvNew.SmartSizeBox = false;
+            this.dgvNew.TabIndex = 2;
+            this.dgvNew.Text = "gridControl1";
+            this.dgvNew.UseRightToLeftCompatibleTextBox = true;
+            this.dgvNew.CellsChanged += new Syncfusion.Windows.Forms.Grid.GridCellsChangedEventHandler(this.dgvNew_CellsChanged);
+            this.dgvNew.QueryCellInfo += new Syncfusion.Windows.Forms.Grid.GridQueryCellInfoEventHandler(this.dgvNew_QueryCellInfo);
+            this.dgvNew.SelectionChanged += new Syncfusion.Windows.Forms.Grid.GridSelectionChangedEventHandler(this.dgvNew_SelectionChanged);
+            this.dgvNew.CurrentCellActivated += new System.EventHandler(this.dgvNew_CurrentCellActivated);
+            this.dgvNew.CurrentCellChanged += new System.EventHandler(this.dgvNew_CurrentCellChanged);
+            this.dgvNew.CurrentCellAcceptedChanges += new System.ComponentModel.CancelEventHandler(this.dgvNew_CurrentCellAcceptedChanges);
             // 
             // PregledForm
             // 
@@ -323,6 +445,7 @@
             this.Name = "PregledForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "PregledForm";
+            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
@@ -330,7 +453,7 @@
             this.splitContainer1.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvPregled)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvNew)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -338,7 +461,6 @@
         #endregion
 
         private System.Windows.Forms.SplitContainer splitContainer1;
-        private System.Windows.Forms.DataGridView dgvPregled;
         private System.Windows.Forms.DateTimePicker dtAmortizacije;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button brnKreirajCSV;
@@ -358,5 +480,16 @@
         private System.Windows.Forms.CheckBox cbEnablePocetniDatum;
         private System.Windows.Forms.DateTimePicker dtPocetniDatumAmortizacije;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Button btnNextPage;
+        private System.Windows.Forms.Button btnPrevPage;
+        private System.Windows.Forms.TextBox inputPageSize;
+        private System.Windows.Forms.TextBox inputStrana;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TextBox topPage;
+        private System.Windows.Forms.Button btnSetpageSize;
+        private System.Windows.Forms.Label lblUkupnoUnosa;
+        private System.Windows.Forms.Label label5;
+        private Syncfusion.Windows.Forms.Grid.GridControl dgvNew;
+        private System.Windows.Forms.Button btnIzbrisati;
     }
 }

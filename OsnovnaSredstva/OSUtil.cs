@@ -11,6 +11,8 @@ namespace OsnovnaSredstva
         public static Dictionary<string, string> columnNames;
         public static Dictionary<string, string> columnNamesToTableMapping;
         public static Dictionary<string, string> columnNamesToItemFieldMapping;
+        public static string dblFormart = "0.000";
+
         public static void init()
         {
             columnNames = new Dictionary<string, string>()
@@ -303,6 +305,16 @@ namespace OsnovnaSredstva
                 ret = "";
 
             return ret;
+        }
+
+        public static string dbl_to_str(double dbl)
+        {
+           return dbl.ToString(dblFormart);
+        }
+
+        public static string dbl_to_str(object dbl)
+        {
+            return ((double)dbl).ToString(dblFormart);
         }
     }
 }

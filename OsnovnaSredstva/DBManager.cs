@@ -19,6 +19,8 @@ namespace OsnovnaSredstva
         private static string dbName;
         private static SQLiteConnection cnn = null;
         static bool initialized = false;
+        private static object autoCompleteLock = new object();
+
         public static void init()
         {
             if (!initialized)
@@ -39,8 +41,8 @@ namespace OsnovnaSredstva
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.GetType() + " " + ex.Message);
-                        log.Error(ex.GetType() + " " + ex.Message, ex);
+                        Console.WriteLine("Database is not locked");
+                        log.Error("Database dont use password");
                         cnn.Close();
                         cnn.SetPassword((string)null);
                         cnn.Open();
@@ -112,6 +114,25 @@ namespace OsnovnaSredstva
             return ret;
         }
 
+        public static int deleteOS(string[] ids)
+        {
+            int ret = 0;
+            string whereIn = "(";
+            for (int i = 0; i < ids.Length; i++)
+            {
+                whereIn += "@id" + i;
+                if (i + 1 < ids.Length)
+                    whereIn += ",";
+            }
+            whereIn += ")";
+            string sql = "DELETE FROM osnovna_sredstva WHERE id in " + whereIn;
+            SQLiteCommand command = new SQLiteCommand(sql, cnn);
+            for (int i = 0; i < ids.Length; i++)
+                command.Parameters.AddWithValue("@id"+i, ids[i]);
+            ret = command.ExecuteNonQuery();
+            return ret;
+        }
+
         public static OSItem GetItem(string id)
         {
             OSItem ret = new OSItem();
@@ -135,8 +156,8 @@ namespace OsnovnaSredstva
                 if (reader.Read())
                 {
                     OSItem item = new OSItem();
-                    DateTime tempDate;
-                    string tempStr;
+
+
                     //numRows = Convert.ToInt32(reader["cnt"]);
                     item.id = reader["id"].ToString();
 
@@ -263,17 +284,30 @@ namespace OsnovnaSredstva
             return ret;
         }
 
-        public static ListWithFieldMaxLengths GetAll()
+        public static ListWithFieldMaxLengths GetAll(int page, int pageSize)
         {
+            if (page < 1)
+                page = 1;
+            if (pageSize < 0)
+                pageSize = 0;
+            int offset = (page - 1) * pageSize;
+
             ListWithFieldMaxLengths lwf = new ListWithFieldMaxLengths();
             try
             {
                 List<OSItem> ret = new List<OSItem>();
-                string sql = "SELECT * FROM osnovna_sredstva  where active='active'";
-
+                string sql = "SELECT * FROM osnovna_sredstva  where active='active'" + (pageSize == 0 ? "" : " limit " + pageSize + " offset " + offset);
+                string sqlCount = "SELECT count(*) FROM osnovna_sredstva  where active='active'";
                 SQLiteCommand command = new SQLiteCommand(sql, cnn);
+                SQLiteCommand commandCount = new SQLiteCommand(sqlCount, cnn);
                 SQLiteDataReader reader;
+                SQLiteDataReader readerCount;
                 reader = command.ExecuteReader();
+                readerCount = commandCount.ExecuteReader();
+                if (readerCount.Read())
+                {
+                    lwf.allCount = readerCount.GetInt32(0);
+                }
                 var readerColumns = new List<string>();
 
                 for (int i = 0; i < reader.FieldCount; i++)
@@ -283,8 +317,6 @@ namespace OsnovnaSredstva
                 while (reader.Read())
                 {
                     OSItem item = new OSItem();
-                    DateTime tempDate;
-                    string tempStr;
                     //numRows = Convert.ToInt32(reader["cnt"]);
                     item.id = reader["id"].ToString();
                     if (!lwf.fieldMaxLength.ContainsKey("id")) lwf.fieldMaxLength.Add("id", "ID");
@@ -409,14 +441,20 @@ namespace OsnovnaSredstva
 
         public enum Condition { contain, greater, lower, equal, none }
 
-        public static ListWithFieldMaxLengths GetAllWithFilter(List<FieldConditionValue> fcvlist, DateTime datumAmortizacije)
+        public static ListWithFieldMaxLengths GetAllWithFilter(List<FieldConditionValue> fcvlist, DateTime datumAmortizacije, int page, int pageSize)
         {
+            if (page < 1)
+                page = 1;
+            if (pageSize < 0)
+                pageSize = 0;
+            int offset = (page - 1) * pageSize;
             ListWithFieldMaxLengths lwf = new ListWithFieldMaxLengths();
             try
             {
                 string sql = "";
                 List<OSItem> ret = new List<OSItem>();
                 sql = "SELECT * FROM osnovna_sredstva where ";
+                string sqlCount = "SELECT count(*) FROM osnovna_sredstva where ";
                 bool first = true;
                 string and = "";
                 foreach (FieldConditionValue fcv in fcvlist)
@@ -424,18 +462,22 @@ namespace OsnovnaSredstva
                     if (fcv.condition == Condition.contain)
                     {
                         sql += and + @fcv.field + " like '%" + @fcv.value + "%'";
+                        sqlCount += and + @fcv.field + " like '%" + @fcv.value + "%'";
                     }
                     else if (fcv.condition == Condition.lower)
                     {
                         sql += and + @fcv.field + " < '" + @fcv.value + "'";
+                        sqlCount += and + @fcv.field + " < '" + @fcv.value + "'";
                     }
                     else if (fcv.condition == Condition.greater)
                     {
                         sql += and + @fcv.field + " > '" + @fcv.value + "'";
+                        sqlCount += and + @fcv.field + " > '" + @fcv.value + "'";
                     }
                     else if (fcv.condition == Condition.equal)
                     {
                         sql += and + @fcv.field + " = '" + @fcv.value + "'";
+                        sqlCount += and + @fcv.field + " = '" + @fcv.value + "'";
                     }
                     else
                     {
@@ -447,10 +489,19 @@ namespace OsnovnaSredstva
                         first = false;
                     }
                 }
-                sql += " and active='active';";
+
+                sql += " and active='active'" + (pageSize == 0 ? "" : " limit " + pageSize + " offset " + offset);
+                sqlCount += " and active='active'";
                 SQLiteCommand command = new SQLiteCommand(sql, cnn);
 
+
                 SQLiteDataReader reader;
+                SQLiteCommand commandCount = new SQLiteCommand(sqlCount, cnn);
+                SQLiteDataReader readerCount = commandCount.ExecuteReader();
+                if (readerCount.Read())
+                {
+                    lwf.allCount = readerCount.GetInt32(0);
+                }
                 reader = command.ExecuteReader();
                 Console.WriteLine("SQl command filter: " + command.CommandText);
 
@@ -597,14 +648,24 @@ namespace OsnovnaSredstva
             return lwf;
         }
 
-        public static ListWithFieldMaxLengths GetAllWithFilterWithStartDate(List<FieldConditionValue> fcvlist, DateTime startDatumAmortizacije, DateTime endDatumAmortizacije)
+
+
+        public static ListWithFieldMaxLengths GetAllWithFilterWithStartDate(List<FieldConditionValue> fcvlist, DateTime startDatumAmortizacije, DateTime endDatumAmortizacije, int page, int pageSize)
         {
+            if (page < 1)
+                page = 1;
+            if (pageSize < 0)
+                pageSize = 0;
+            int offset = (page - 1) * pageSize;
+
+
             ListWithFieldMaxLengths lwf = new ListWithFieldMaxLengths();
             try
             {
                 string sql = "";
                 List<OSItem> ret = new List<OSItem>();
                 sql = "SELECT * FROM osnovna_sredstva where ";
+                string sqlCount = "SELECT count(*) FROM osnovna_sredstva where ";
                 bool first = true;
                 string and = "";
                 foreach (FieldConditionValue fcv in fcvlist)
@@ -612,18 +673,22 @@ namespace OsnovnaSredstva
                     if (fcv.condition == Condition.contain)
                     {
                         sql += and + @fcv.field + " like '%" + @fcv.value + "%'";
+                        sqlCount += and + @fcv.field + " like '%" + @fcv.value + "%'";
                     }
                     else if (fcv.condition == Condition.lower)
                     {
                         sql += and + @fcv.field + " < '" + @fcv.value + "'";
+                        sqlCount += and + @fcv.field + " < '" + @fcv.value + "'";
                     }
                     else if (fcv.condition == Condition.greater)
                     {
                         sql += and + @fcv.field + " > '" + @fcv.value + "'";
+                        sqlCount += and + @fcv.field + " > '" + @fcv.value + "'";
                     }
                     else if (fcv.condition == Condition.equal)
                     {
                         sql += and + @fcv.field + " = '" + @fcv.value + "'";
+                        sqlCount += and + @fcv.field + " = '" + @fcv.value + "'";
                     }
                     else
                     {
@@ -635,15 +700,23 @@ namespace OsnovnaSredstva
                         first = false;
                     }
                 }
-                sql += " and active='active';";
+                sql += " and active='active'" + (pageSize == 0 ? "" : " limit " + pageSize + " offset " + offset);
+                sqlCount += " and active='active'";
                 SQLiteCommand command = new SQLiteCommand(sql, cnn);
 
                 SQLiteDataReader reader;
+                SQLiteCommand commandCount = new SQLiteCommand(sqlCount, cnn);
+                SQLiteDataReader readerCount = commandCount.ExecuteReader();
+                if (readerCount.Read())
+                {
+                    lwf.allCount = readerCount.GetInt32(0);
+                }
                 reader = command.ExecuteReader();
                 Console.WriteLine("SQl command filter: " + command.CommandText);
 
                 while (reader.Read())
                 {
+
                     OSItem item = new OSItem();
                     //numRows = Convert.ToInt32(reader["cnt"]);
                     item.id = reader["id"].ToString();
@@ -775,6 +848,7 @@ namespace OsnovnaSredstva
 
                     lwf.items.Add(item);
                     ret.Add(item);
+
                 }
                 Console.WriteLine("Count filter: " + lwf.items.Count);
             }
@@ -785,12 +859,13 @@ namespace OsnovnaSredstva
             return lwf;
         }
 
-        public static ListWithFieldMaxLengths GetAllSaIspravkaVrijednostiISadasnjaVrijednost(DateTime pickedDate)
+        public static ListWithFieldMaxLengths GetAllSaIspravkaVrijednostiISadasnjaVrijednost(DateTime pickedDate, int page, int pageSize)
         {
             ListWithFieldMaxLengths ret = new ListWithFieldMaxLengths();
             try
             {
-                ListWithFieldMaxLengths allItemsFromDB = GetAll();
+                ListWithFieldMaxLengths allItemsFromDB = GetAll(page, pageSize);
+                ret.allCount = allItemsFromDB.allCount;
                 foreach (OSItem item in allItemsFromDB.items)
                 {
                     ret.fieldMaxLength = allItemsFromDB.fieldMaxLength;
@@ -828,12 +903,13 @@ namespace OsnovnaSredstva
             return ret;
         }
 
-        public static ListWithFieldMaxLengths GetAllSaIspravkaVrijednostiISadasnjaVrijednostWithStartDate(DateTime startDate, DateTime endDate)
+        public static ListWithFieldMaxLengths GetAllSaIspravkaVrijednostiISadasnjaVrijednostWithStartDate(DateTime startDate, DateTime endDate, int page, int pageSize)
         {
             ListWithFieldMaxLengths ret = new ListWithFieldMaxLengths();
             try
             {
-                ListWithFieldMaxLengths allItemsFromDB = GetAll();
+                ListWithFieldMaxLengths allItemsFromDB = GetAll(page, pageSize);
+                ret.allCount = allItemsFromDB.allCount;
                 foreach (OSItem item in allItemsFromDB.items)
                 {
                     ret.fieldMaxLength = allItemsFromDB.fieldMaxLength;
@@ -905,12 +981,12 @@ namespace OsnovnaSredstva
             return ret;
         }
 
-        public static List<string> GetAllFromColumnAsStrings(string columnName, string containsString)
+        public static List<string> GetAllFromColumnAsStrings(string columnName, string containsString, int limitRows)
         {
             List<string> ret = new List<string>();
             try
             {
-                string sqlGetAllFromColumn = "SELECT " + @columnName + " FROM osnovna_sredstva where " + @columnName + " like '%" + @containsString + "%' ORDER BY " + @columnName + " ASC";
+                string sqlGetAllFromColumn = "SELECT " + @columnName + " FROM osnovna_sredstva where " + @columnName + " like '%" + @containsString + "%' ORDER BY " + @columnName + " ASC LIMIT " + limitRows + ";";
 
                 SQLiteCommand cmd = new SQLiteCommand(sqlGetAllFromColumn, cnn);
 
@@ -929,25 +1005,31 @@ namespace OsnovnaSredstva
 
         }
 
-        public static List<string> GetAllFromColumnAsStringsDistinct(string columnName, string containsString)
+        public static List<string> GetAllFromColumnAsStringsDistinct(string columnName, string orderByColumnName, string orderASCOrDESC, string containsString, int limitRows)
         {
+
             List<string> ret = new List<string>();
-            try
+            lock (autoCompleteLock)
             {
-                string sqlGetAllFromColumn = "SELECT DISTINCT " + @columnName + " FROM osnovna_sredstva where " + @columnName + " like '%" + @containsString + "%' ORDER BY " + @columnName + " ASC";
-
-                SQLiteCommand cmd = new SQLiteCommand(sqlGetAllFromColumn, cnn);
-
-                SQLiteDataReader reader = cmd.ExecuteReader();
-
-                while (reader.Read())
+                try
                 {
-                    ret.Add(reader.GetString(0));
+                    if (orderASCOrDESC == null || orderASCOrDESC != "DESC")
+                        orderASCOrDESC = "ASC";
+                    string sqlGetAllFromColumn = "SELECT DISTINCT " + @columnName + " FROM osnovna_sredstva where " + @columnName + " like '%" + @containsString + "%' ORDER BY " + @orderByColumnName + " " + orderASCOrDESC + " LIMIT " + @limitRows + ";";
+
+                    SQLiteCommand cmd = new SQLiteCommand(sqlGetAllFromColumn, cnn);
+
+                    SQLiteDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        ret.Add(reader.GetString(0));
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
             }
             return ret;
 
@@ -964,6 +1046,21 @@ namespace OsnovnaSredstva
             {
                 ret = reader.GetString(0);
             }
+            return ret;
+        }
+
+        public static Dictionary<string, string> GetAllPodesavanja()
+        {
+            Dictionary<string, string> ret = new Dictionary<string, string>();
+
+            string sqlGetAllPodesavanje = "SELECT * FROM podesavanja;";
+            SQLiteCommand cmd = new SQLiteCommand(sqlGetAllPodesavanje, cnn);
+            SQLiteDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                ret.Add(reader.GetString(0), reader.GetString(1));
+            }
+
             return ret;
         }
 
@@ -985,5 +1082,9 @@ namespace OsnovnaSredstva
 
         }
 
+        public static void closeConnection()
+        {
+            cnn.Close();
+        }
     }
 }

@@ -55,7 +55,7 @@ namespace OsnovnaSredstva
     {
         public List<OSItem> items=new List<OSItem>();
         public Dictionary<string, string> fieldMaxLength = new Dictionary<string, string>();
-
+        public int allCount=0;
     }
 
     

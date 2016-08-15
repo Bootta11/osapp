@@ -13,6 +13,8 @@ using System.Globalization;
 using NPOI.HSSF.Model; // InternalWorkbook
 using NPOI.HSSF.UserModel; // HSSFWorkbook, HSSFSheet
 using log4net;
+using System.Threading;
+using Syncfusion.Windows.Forms.Grid;
 
 namespace OsnovnaSredstva
 {
@@ -27,9 +29,13 @@ namespace OsnovnaSredstva
         Guid lastSearchFcvListID, fcvListId;
         Font font = new Font("Arial", 8);
         bool notPrintPreviewed, notPrinted;
-        DataGridViewRow dgvSelectedRow = null;
         OSItem itemZaIzmjeniti = null;
         public Form1 inputForma = null;
+        int page = 1;
+        int pageSize = 40;
+        int lastPageNumber;
+        bool fillingDgv = false;
+        string[,] dgvNewTable;
 
         public PregledForm(Form1 inputForm)
         {
@@ -37,7 +43,12 @@ namespace OsnovnaSredstva
 
 
 
-            itemsForList = DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(DateTime.Now.Date);
+            itemsForList = DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(DateTime.Now.Date, page, pageSize);
+            lblUkupnoUnosa.Text = "Ukupno unosa: " + itemsForList.allCount;
+            lastPageNumber = (int)Math.Ceiling((itemsForList.allCount / (pageSize * 1.0)));
+            topPage.Text = lastPageNumber + "";
+            inputPageSize.Text = pageSize + "";
+            inputStrana.Text = page + "";
             font = new Font("Courier New", 8);
 
 
@@ -55,77 +66,126 @@ namespace OsnovnaSredstva
                 cbFieldName.Items.Insert(cbi, OSUtil.columnNames[ck]);
                 cbi++;
             }
-            FillGridView(itemsForList);
+            FillPregeldGridView();
             lastSearchFcvListID = Guid.NewGuid();
             fcvListId = lastSearchFcvListID;
             inputForma = inputForm;
+
 
         }
 
         public void FillGridView(ListWithFieldMaxLengths itemslist)
         {
             itemsForList = itemslist;
-            dgvPregled.Rows.Clear();
+
+            // dgvPregled.Rows.Clear();
+            dgvNew.Clear(true);
             Type myType = typeof(OSItem);
             IList<PropertyInfo> props = new List<PropertyInfo>(myType.GetProperties());
             Console.WriteLine(props.Count);
-            dgvPregled.ColumnCount = props.Count;
+
+            dgvNew.ColCount = props.Count() - 1;
+
+
             for (int i = 0; i < props.Count; i++)
             {
+                if (!props.ElementAt(i).Name.StartsWith("active"))
+                {
+
+                    dgvNew[0, i + 1].Text = OSUtil.columnNames[props.ElementAt(i).Name];
+                }
                 //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
                 //object propValue = prop.GetValue(myObject, null);
-                dgvPregled.Columns[i].Name = OSUtil.columnNames[props.ElementAt(i).Name];
+
+
+                //dgvNew[0, i].Borders = new GridBordersInfo().All = GridBorder
+
                 // Do something with propValue
             }
+            //dgvNew.ColWidths.ResizeToFit(GridRangeInfo.Rows(1, props.Count));
 
+            //dgvNew settings
+            dgvNew.AllowProportionalColumnSizing = false;
+            dgvNew.TableStyle.AutoSize = true;
+            
+            
+            dgvNew.ColWidths.ResizeToFit(GridRangeInfo.Cols(1, props.Count),GridResizeToFitOptions.IncludeCellsWithinCoveredRange);
+            dgvNew.RowHeights.ResizeToFit(GridRangeInfo.Rows(1, props.Count), GridResizeToFitOptions.IncludeCellsWithinCoveredRange);
+            
+            dgvNewTable = new string[itemsForList.items.Count, props.Count];
+
+            int countRows = 0;
             foreach (OSItem item in itemslist.items)
             {
                 List<string> row = new List<string>();
                 for (int i = 0; i < props.Count; i++)
                 {
+                    //dgvNewTable[countRows, i] = props.ElementAt(i).GetValue(item, null).ToString();
                     if (props.ElementAt(i).Name.StartsWith("datum"))
                     {
                         if (props.ElementAt(i).Name.Equals("datumVrijednosti"))
                         {
                             if (item.vrijednostNaDatum.ToString().Trim() == "-1")
+                            {
                                 row.Add("");
-                            else
+                                dgvNewTable[countRows, i] = "";
+                            }
+                            else {
+                                dgvNewTable[countRows, i] = DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy.");
                                 row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy."));
+                            }
                         }
                         else
                         {
+                            dgvNewTable[countRows, i] = DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy.");
                             row.Add(DateTime.ParseExact(props.ElementAt(i).GetValue(item, null).ToString(), "yyyy-MM-dd HH:mm:ss", Form1.culture).ToString("dd.MM.yyyy."));
                         }
                     }
                     else if (props.ElementAt(i).Name.StartsWith("vrijednostNaDatum"))
                     {
                         if (props.ElementAt(i).GetValue(item, null).ToString() == "-1")
+                        {
+                            dgvNewTable[countRows, i] = "";
                             row.Add("");
-                        else
+                        }
+                        else {
+                            dgvNewTable[countRows, i] = props.ElementAt(i).GetValue(item, null).ToString();
                             row.Add(props.ElementAt(i).GetValue(item, null).ToString());
+                        }
+                    }
+                    else if (props.ElementAt(i).Name.StartsWith("active"))
+                    {
+
                     }
                     else
                     {
                         if (props.ElementAt(i).PropertyType == typeof(double))
                         {
-                            string str = ((double)props.ElementAt(i).GetValue(item, null)).ToString("0.000");
+                            string str = OSUtil.dbl_to_str(props.ElementAt(i).GetValue(item, null));
+                            dgvNewTable[countRows, i] = str;
                             row.Add(str);
                         }
-                        else
+                        else {
+                            dgvNewTable[countRows, i] = props.ElementAt(i).GetValue(item, null).ToString();
                             row.Add(props.ElementAt(i).GetValue(item, null).ToString());
+                        }
 
                     }
                     //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
                     //object propValue = prop.GetValue(myObject, null);
 
                     // Do something with propValue
+
                 }
 
 
 
-                dgvPregled.Rows.Add(row.ToArray());
-                dgvPregled.Refresh();
+                countRows++;
+
             }
+            dgvNew.RowCount = dgvNewTable.GetLength(0);
+            //dgvNew.ColCount = dgvNewTable.GetLength(1);
+            dgvNew.Refresh();
         }
 
         //define rw as globly variable in form
@@ -242,7 +302,8 @@ namespace OsnovnaSredstva
             }
 
             offsetX = startX;
-            offsetY += dgvPregled.Rows[0].Height;
+            int rowHeight = dgvNew.RowHeights.GetSize(0);
+            offsetY += rowHeight; ;
 
             foreach (string cname in columns)
             {
@@ -250,9 +311,9 @@ namespace OsnovnaSredstva
                 if (cname.Equals("#")) { maxStringSize = e.Graphics.MeasureString((itemsForList.items.Count).ToString().Length > OSUtil.columnNames[cname].Length ? (itemsForList.items.Count).ToString() : OSUtil.columnNames[cname], font); maxStringSize.Width += 2; }
                 else maxStringSize = e.Graphics.MeasureString(itemsForList.fieldMaxLength[cname], font);
 
-                graphics.DrawRectangle(Pens.Black, offsetX, offsetY, lengthsList[cname], dgvPregled.Rows[0].Height);
-                graphics.FillRectangle(Brushes.LightGray, new Rectangle(offsetX + 1, offsetY + 1, (int)lengthsList[cname] - 1, dgvPregled.Rows[0].Height));
-                RectangleF rectf = new RectangleF((float)offsetX, ((float)(offsetY)), (float)lengthsList[cname], (float)dgvPregled.Rows[0].Height);
+                graphics.DrawRectangle(Pens.Black, offsetX, offsetY, lengthsList[cname], rowHeight);
+                graphics.FillRectangle(Brushes.LightGray, new Rectangle(offsetX + 1, offsetY + 1, (int)lengthsList[cname] - 1, rowHeight));
+                RectangleF rectf = new RectangleF((float)offsetX, ((float)(offsetY)), (float)lengthsList[cname], (float)rowHeight);
                 StringFormat stringDrawFormat = new StringFormat();
                 stringDrawFormat.Alignment = StringAlignment.Center;
                 stringDrawFormat.LineAlignment = StringAlignment.Center;
@@ -268,18 +329,18 @@ namespace OsnovnaSredstva
             stringDrawFormat2.Alignment = StringAlignment.Center;
             stringDrawFormat2.LineAlignment = StringAlignment.Center;
 
-            offsetY += dgvPregled.Rows[0].Height;
+            offsetY += rowHeight;
 
             int a = itemsForList.items.Count;
-            int c = dgvPregled.Columns.Count;
+            int c = dgvNew.ColCount;
             Type ositemType = typeof(OSItem);
-            int rb = 1;
+
 
             while (itemPrintNum < a)
             {
                 rowHeightCorrectionFactor = 14;
                 offsetX = startX;
-                if ((offsetY) > (e.PageBounds.Height - startY - 10) && (notPrintPreviewed || notPrinted))
+                if ((offsetY) > (e.PageBounds.Height - startY - 20) && (notPrintPreviewed || notPrinted))
                 {
 
                     offsetY = startY;
@@ -307,7 +368,7 @@ namespace OsnovnaSredstva
 
                     if ((maxStringSize.Width - lengthsList[cname]) > 2)
                     {
-                        rowHeightCorrectionFactor = (int)(rowHeightCorrectionFactor + ((int)(maxStringSize.Width / lengthsList[cname])) * rowHeightCorrectionFactor);
+                        rowHeightCorrectionFactor = (int)(((int)(maxStringSize.Width / lengthsList[cname])) * rowHeightCorrectionFactor);
                     }
                 }
 
@@ -340,7 +401,7 @@ namespace OsnovnaSredstva
                     else
                     {
                         if (prop.GetValue(itemsForList.items[itemPrintNum]).GetType() == typeof(double))
-                            graphics.DrawString(((double)prop.GetValue(itemsForList.items[itemPrintNum])).ToString("0.000"), font, Brushes.Black, rectf, stringDrawFormat);
+                            graphics.DrawString(OSUtil.dbl_to_str(prop.GetValue(itemsForList.items[itemPrintNum])), font, Brushes.Black, rectf, stringDrawFormat);
                         else
                             graphics.DrawString(prop.GetValue(itemsForList.items[itemPrintNum]) + "", font, Brushes.Black, rectf, stringDrawFormat);
                     }
@@ -425,10 +486,7 @@ namespace OsnovnaSredstva
                 }
                 DBManager.UpdateItem(item);
 
-                if (fcvlist.Count > 0)
-                    FillGridView(DBManager.GetAllWithFilter(fcvlist, dtAmortizacije.Value));
-                else
-                    FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(dtAmortizacije.Value));
+                FillPregeldGridView();
             }
         }
 
@@ -440,6 +498,47 @@ namespace OsnovnaSredstva
             DBManager.deleteOS((string)e.Row.Cells["id"].Value);
 
 
+        }
+
+        public void FillPregeldGridView()
+        {
+            fillingDgv = true;
+            if (cbEnablePocetniDatum.Checked)
+            {
+                if (fcvlist.Count > 0)
+                {
+                    itemsForList = DBManager.GetAllWithFilterWithStartDate(fcvlist, dtPocetniDatumAmortizacije.Value.Date, dtAmortizacije.Value.Date, page, pageSize);
+                    lastPageNumber = (int)Math.Ceiling((itemsForList.allCount / (pageSize * 1.0)));
+
+                    topPage.Text = lastPageNumber + "";
+                    FillGridView(itemsForList);
+                }
+                else
+                {
+                    itemsForList = DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednostWithStartDate(dtPocetniDatumAmortizacije.Value.Date, dtAmortizacije.Value.Date, page, pageSize);
+                    lastPageNumber = (int)Math.Ceiling((itemsForList.allCount / (pageSize * 1.0)));
+                    topPage.Text = lastPageNumber + "";
+                    FillGridView(itemsForList);
+                }
+            }
+            else
+            {
+                if (fcvlist.Count > 0)
+                {
+                    itemsForList = DBManager.GetAllWithFilter(fcvlist, dtAmortizacije.Value.Date, page, pageSize);
+                    lastPageNumber = (int)Math.Ceiling((itemsForList.allCount / (pageSize * 1.0)));
+                    topPage.Text = lastPageNumber + "";
+                    FillGridView(itemsForList);
+                }
+                else {
+                    itemsForList = DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(dtAmortizacije.Value.Date, page, pageSize);
+                    lastPageNumber = (int)Math.Ceiling((itemsForList.allCount / (pageSize * 1.0)));
+                    topPage.Text = lastPageNumber + "";
+                    FillGridView(itemsForList);
+                }
+            }
+            lblUkupnoUnosa.Text = "Ukupno unosa: " + itemsForList.allCount;
+            fillingDgv = false;
         }
 
 
@@ -454,8 +553,7 @@ namespace OsnovnaSredstva
             {
                 //System.IO.StreamWriter file = new System.IO.StreamWriter(@"items.csv", false);
                 System.IO.StreamWriter file;
-                HSSFWorkbook wb;
-                HSSFSheet sh;
+
 
                 //System.Web.HttpContext.Current.Response.Write("Some Text");
                 SaveFileDialog saveFileDialog1 = new SaveFileDialog();
@@ -513,8 +611,19 @@ namespace OsnovnaSredstva
                                 }
                                 else
                                 {
+                                    if (props.ElementAt(i).PropertyType == typeof(double))
+                                    {
+                                        string str = OSUtil.dbl_to_str(props.ElementAt(i).GetValue(item, null));
+
+
+                                        file.Write(str + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                                    }
+                                    else {
+
+                                        file.Write(props.ElementAt(i).GetValue(item, null).ToString() + (i < props.Count - 1 ? ";" : Environment.NewLine));
+                                    }
                                     //row.Add(props.ElementAt(i).GetValue(item, null).ToString());
-                                    file.Write(props.ElementAt(i).GetValue(item, null).ToString() + (i < props.Count - 1 ? ";" : Environment.NewLine));
+
                                 }
                                 //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
                                 //object propValue = prop.GetValue(myObject, null);
@@ -526,9 +635,10 @@ namespace OsnovnaSredstva
                         location = saveFileDialog1.FileName;
                         file.Close();
                     }
+                    MessageBox.Show("CSV fajl uspješno snimljen na lokaciju: \n" + location, "CSV snimljen", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
                 }
 
-                MessageBox.Show("CSV fajl uspješno snimljen na lokaciju: \n" + location, "CSV snimljen", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -541,7 +651,7 @@ namespace OsnovnaSredstva
         {
             if (cbFieldName.SelectedIndex > 0)
             {
-                int index = 1;
+
                 string fieldName = cbFieldName.Items[cbFieldName.SelectedIndex].ToString().Trim();
                 cbCondition.Items.Clear();
                 cbCondition.Items.Insert(0, "-uslov za pretragu-");
@@ -684,7 +794,6 @@ namespace OsnovnaSredstva
             try
             {
                 //System.IO.StreamWriter file = new System.IO.StreamWriter(@"items.csv", false);
-                System.IO.StreamWriter file;
                 HSSFWorkbook wb;
                 HSSFSheet sh;
 
@@ -757,16 +866,20 @@ namespace OsnovnaSredstva
                                     }
                                     else
                                     {
-                                        //row.Add(props.ElementAt(i).GetValue(item, null).ToString());
-                                        //file.Write(props.ElementAt(i).GetValue(item, null).ToString() + (i < props.Count - 1 ? ";" : Environment.NewLine));
-                                        cell.SetCellValue(props.ElementAt(i).GetValue(item, null).ToString());
-                                    }
-                                    //Console.WriteLine(prop.Name + " = " + prop.GetValue(itemsForList[0], null));
-                                    //object propValue = prop.GetValue(myObject, null);
+                                        if (props.ElementAt(i).PropertyType == typeof(double))
+                                        {
+                                            string str = OSUtil.dbl_to_str(props.ElementAt(i).GetValue(item, null));
 
-                                    // Do something with propValue
+                                            cell.SetCellValue(str);
+                                        }
+                                        else {
+                                            cell.SetCellValue(props.ElementAt(i).GetValue(item, null).ToString());
+                                        }
+
+                                    }
+
                                 }
-                                //dgvPregled.Rows.Add(row.ToArray());
+
                                 rowcount++;
                             }
                             wb.Write(dlgstream);
@@ -774,9 +887,9 @@ namespace OsnovnaSredstva
                             dlgstream.Close();
                         }
                     }
+                    MessageBox.Show("XLS fajl uspješno snimljen na lokaciju: \n" + location, "XLS snimljen", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
-                MessageBox.Show("XLS fajl uspješno snimljen na lokaciju: \n" + location, "XLS snimljen", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -790,23 +903,11 @@ namespace OsnovnaSredstva
 
         }
 
-        private void dgvPregled_RowStateChanged(object sender, DataGridViewRowStateChangedEventArgs e)
-        {
-            /*
-            Console.WriteLine(e.StateChanged+ " on "+e.Row.Index);
-            if(e.StateChanged == DataGridViewElementStates.Selected)
-            {
-                dgvSelectedRow = e.Row;
-                btnIzmijeniti.Enabled = true;
-            }else
-            {
-                btnIzmijeniti.Enabled = false;
-            }
-            */
-        }
+
 
         private void dgvPregled_RowEnter(object sender, DataGridViewCellEventArgs e)
         {
+            /*
             Console.WriteLine("Row enter " + e.RowIndex);
             DataGridView dgv = (DataGridView)sender;
 
@@ -815,6 +916,7 @@ namespace OsnovnaSredstva
             Console.WriteLine(item);
             itemZaIzmjeniti = item;
             btnIzmijeniti.Enabled = true;
+            */
         }
 
         private void dgvPregled_RowLeave(object sender, DataGridViewCellEventArgs e)
@@ -831,10 +933,7 @@ namespace OsnovnaSredstva
 
         private void dgvPregled_UserDeletedRow(object sender, DataGridViewRowEventArgs e)
         {
-            if (fcvlist.Count > 0)
-                FillGridView(DBManager.GetAllWithFilter(fcvlist, dtAmortizacije.Value));
-            else
-                FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(dtAmortizacije.Value));
+            FillPregeldGridView();
         }
 
         private void cbEnablePocetniDatum_CheckedChanged(object sender, EventArgs e)
@@ -856,24 +955,173 @@ namespace OsnovnaSredstva
             fcvListId = Guid.NewGuid();
         }
 
+        private void btnNextPage_Click(object sender, EventArgs e)
+        {
+            if (page < lastPageNumber)
+            {
+                page++;
+                inputStrana.Text = page + "";
+                FillPregeldGridView();
+            }
+        }
+
+        private void btnPrevPage_Click(object sender, EventArgs e)
+        {
+            if (page > 1)
+            {
+                page--;
+                inputStrana.Text = page + "";
+                FillPregeldGridView();
+            }
+        }
+
+        private void btnSetpageSize_Click(object sender, EventArgs e)
+        {
+            int temp;
+            if (int.TryParse(inputPageSize.Text, out temp) && !fillingDgv)
+            {
+                pageSize = temp;
+                page = 1;
+                inputStrana.Text = page + "";
+                FillPregeldGridView();
+                //FillPregeldGridView();
+            }
+        }
+
+        private void dgvNew_QueryCellInfo(object sender, GridQueryCellInfoEventArgs e)
+        {
+
+            if (e.RowIndex > 0 && e.ColIndex > 0 && dgvNewTable != null && e.RowIndex <= dgvNew.RowCount)
+
+            {
+                if (e.RowIndex <= dgvNewTable.GetLength(0))
+                    e.Style.CellValue = dgvNewTable[e.RowIndex - 1, e.ColIndex - 1];
+
+            }
+        }
+
+        private void dgvNew_CellsChanged(object sender, GridCellsChangedEventArgs e)
+        {
+            //Console.WriteLine("cell " + e.Range+ " "+e.SavedCellsInfo.Length+ e.SavedCellsInfo[0]);
+        }
+
+        private void dgvNew_CurrentCellChanged(object sender, EventArgs e)
+        {
+            GridControl grid = (GridControl)sender;
+
+            Console.WriteLine("Current cell changed " + grid[grid.CurrentCell.RowIndex, grid.CurrentCell.ColIndex].CellValue);
+        }
+
+        private void dgvNew_CurrentCellAcceptedChanges(object sender, CancelEventArgs e)
+        {
+            GridControl grid = (GridControl)sender;
+            string currentRowActiveText = grid.CurrentCell.Model.GetActiveText(grid.CurrentCell.RowIndex, grid.CurrentCell.ColIndex);
+            Console.WriteLine("Current cell changed " + grid.CurrentCell.Model.GetActiveText(grid.CurrentCell.RowIndex, grid.CurrentCell.ColIndex) + " ");
+
+            int rowIndex = grid.CurrentCell.RowIndex;
+            int colIndex = grid.CurrentCell.ColIndex;
+            bool update = true;
+
+
+            OSItem item = DBManager.GetItem(dgvNew[rowIndex, 1].Text);
+            Console.WriteLine("Item name: " + item.naziv);
+            //item.inventurniBroj = dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
+            //string colName=dgvNew[0,colIndex].Text;
+            PropertyInfo prop = item.GetType().GetProperty(OSUtil.columnNames.Where(c => c.Value == dgvNew[0, colIndex].Text).Select(pair => pair.Key).ToArray()[0], BindingFlags.Public | BindingFlags.Instance);
+
+            if (null != prop && prop.CanWrite)
+            {
+                if (prop.Name.ToLower().StartsWith("datum"))
+                {
+                    if (currentRowActiveText.Length > 0)
+                    {
+                        DateTime dt = new DateTime();
+                        update = DateTime.TryParseExact(currentRowActiveText, "d.MM.yyyy.", Form1.culture, DateTimeStyles.None, out dt);
+                        prop.SetValue(item, dt.ToString("dd.MM.yyyy."), null);
+                    }
+                    else
+                    {
+                        update = false;
+                    }
+                }
+                else
+                {
+                    if (currentRowActiveText.Length > 0)
+                        prop.SetValue(item, Convert.ChangeType(currentRowActiveText, prop.PropertyType), null);
+                    else
+                        update = false;
+                }
+            }
+            if (update)
+            {
+                if (prop.Name.StartsWith("datumAmortizacije") || prop.Name.StartsWith("stopaAmortizacije"))
+                {
+                    DateTime dt = new DateTime();
+                    update = DateTime.TryParseExact(currentRowActiveText, "d.MM.yyyy.", Form1.culture, DateTimeStyles.None, out dt);
+
+                    item.datumOtpisa = OSUtil.calculateDatumOtpisa(dt, item.stopaAmortizacije).ToString("dd.MM.yyyy.");
+                }
+                DBManager.UpdateItem(item);
+
+                FillPregeldGridView();
+            }
+
+        }
+
+        private void btnObrisati_Click(object sender, EventArgs e)
+        {
+            GridRangeInfoList gril = dgvNew.Rows.GetSelectedRowColRanges();
+            List<string> idsList = new List<string>();
+            foreach (GridRangeInfo gri in gril)
+            {
+                Console.WriteLine(gri.Top + " " + gri.Bottom);
+                for (int i = gri.Top; i <= gri.Bottom; i++)
+                {
+
+                    idsList.Add(dgvNew[i, 1].Text.Trim());
+                }
+
+
+            }
+            DBManager.deleteOS(idsList.ToArray());
+            FillPregeldGridView();
+        }
+
+        private void dgvNew_SelectionChanged(object sender, GridSelectionChangedEventArgs e)
+        {
+            Console.WriteLine("Selection range: " + e.Range.IsRows);
+            if (e.Range.IsRows)
+                btnIzbrisati.Enabled = true;
+            else
+                btnIzbrisati.Enabled = false;
+        }
+
+        private void dgvNew_CurrentCellActivated(object sender, EventArgs e)
+        {
+            GridControl grid = (GridControl)sender;
+
+            int rowIndex = grid.CurrentCell.RowIndex;
+            int colIndex = grid.CurrentCell.ColIndex;
+            if (rowIndex > 0)
+            {
+                OSItem item = DBManager.GetItem(grid[rowIndex, 1].Text.Trim());
+                Console.WriteLine(item);
+                itemZaIzmjeniti = item;
+                btnIzmijeniti.Enabled = true;
+            }
+            else
+            {
+                btnIzmijeniti.Enabled = false;
+            }
+        }
+
         private void btnSearch_Click_1(object sender, EventArgs e)
         {
             if (fcvListId != lastSearchFcvListID)
             {
-                if (cbEnablePocetniDatum.Checked)
-                {
-                    if (fcvlist.Count > 0)
-                        FillGridView(DBManager.GetAllWithFilterWithStartDate(fcvlist, dtPocetniDatumAmortizacije.Value.Date, dtAmortizacije.Value.Date));
-                    else
-                        FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednostWithStartDate(dtPocetniDatumAmortizacije.Value.Date, dtAmortizacije.Value.Date));
-                }
-                else
-                {
-                    if (fcvlist.Count > 0)
-                        FillGridView(DBManager.GetAllWithFilter(fcvlist, dtAmortizacije.Value.Date));
-                    else
-                        FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(dtAmortizacije.Value.Date));
-                }
+                page = 1;
+                inputStrana.Text = page + "";
+                FillPregeldGridView();
                 lastSearchFcvListID = fcvListId;
             }
         }
@@ -883,11 +1131,13 @@ namespace OsnovnaSredstva
             fcvlist.Clear();
             cbActiveFilters.Items.Clear();
             cbActiveFilters.Enabled = false;
-            FillGridView(DBManager.GetAllSaIspravkaVrijednostiISadasnjaVrijednost(dtAmortizacije.Value));
+            FillPregeldGridView();
 
             lastSearchFcvListID = fcvListId;
         }
 
 
     }
+
+
 }

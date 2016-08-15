@@ -14,6 +14,7 @@ namespace OsnovnaSredstva
     {
         static Form staticForm;
         static Label lblMessageHolderForTimer = null;
+        static System.Timers.Timer aTimer = null;
 
         public LoginForm()
         {
@@ -32,7 +33,8 @@ namespace OsnovnaSredstva
             {
                 this.DialogResult = DialogResult.OK;
                 Form1.setKorisnik(inputKorisnickoIme.Text.Trim());
-            }else
+            }
+            else
             {
                 showErrorMessage("Error: Korisnicko ime ili lozinka nisu validni");
             }
@@ -42,10 +44,10 @@ namespace OsnovnaSredstva
         {
             lblMessageHolderForTimer = lblMsg;
             // Create a timer with a two second interval.
-            System.Timers.Timer aTimer = new System.Timers.Timer(2000);
+            aTimer = new System.Timers.Timer(2000);
             // Hook up the Elapsed event for the timer. 
-            aTimer.Elapsed += (sender, e)=> OnTimedEventTest(sender,e,lblMsg);
-            
+            aTimer.Elapsed += (sender, e) => OnTimedEventTest(sender, e, lblMsg);
+
             aTimer.AutoReset = false;
             aTimer.Enabled = true;
         }
@@ -54,7 +56,8 @@ namespace OsnovnaSredstva
         {
             System.Timers.Timer timer = (System.Timers.Timer)source;
             timer.Enabled = false;
-            staticForm.Invoke((MethodInvoker)delegate {
+            staticForm.Invoke((MethodInvoker)delegate
+            {
 
                 lblMessageHolderForTimer.Visible = false; // runs on UI thread
             });
@@ -64,15 +67,23 @@ namespace OsnovnaSredstva
 
         private static void OnTimedEventTest(Object source, System.Timers.ElapsedEventArgs e, Label lblMsg)
         {
-            System.Timers.Timer timer = (System.Timers.Timer)source;
-            timer.Enabled = false;
-            staticForm.Invoke((MethodInvoker)delegate {
-                lblMsg.Visible = false;
-                // lblMessageHolderForTimer.Visible = false; // runs on UI thread
-            });
-            
+            if (!staticForm.IsDisposed)
+            {
+                System.Timers.Timer timer = (System.Timers.Timer)source;
+                timer.Enabled = false;
+                staticForm.Invoke((MethodInvoker)delegate
+                {
+                    lblMsg.Visible = false;
+                    // lblMessageHolderForTimer.Visible = false; // runs on UI thread
+                });
+            }
             //lblMessageHolderForTimer.Visible = false;
 
+        }
+        public void cleanForm()
+        {
+            if (aTimer != null)
+                aTimer.Enabled = false;
         }
 
         public void showErrorMessage(string msg)
@@ -107,7 +118,7 @@ namespace OsnovnaSredstva
 
         private void inputLozinka_KeyPress(object sender, KeyPressEventArgs e)
         {
-            
+
             if (e.KeyChar == (char)Keys.Enter)
             {
                 btnLogin.PerformClick();
@@ -117,7 +128,7 @@ namespace OsnovnaSredstva
 
         private void inputKorisnickoIme_KeyPress(object sender, KeyPressEventArgs e)
         {
-            
+
             if (e.KeyChar == (char)Keys.Enter)
             {
                 inputLozinka.Focus();
